@@ -13,7 +13,7 @@ export const CarHeroPage: React.FC<CarHeroPageProps> = ({
   onStartJourney,
   onViewDestinations,
 }) => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   return (
     <div id="cars-page-view" className="w-full flex flex-col items-center relative">
@@ -66,7 +66,7 @@ export const CarHeroPage: React.FC<CarHeroPageProps> = ({
           />
 
           {/* Search Widget */}
-          <CarTripWidget />
+          <CarTripWidget key={language} />
         </main>
 
         {/* Trust & Features Row */}

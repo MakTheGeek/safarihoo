@@ -13,7 +13,7 @@ export const AirHelpHeroPage: React.FC<AirHelpHeroPageProps> = ({
   onStartJourney,
   onViewDestinations,
 }) => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   return (
     <div id="airhelp-page-view" className="w-full flex flex-col items-center relative">
@@ -66,7 +66,7 @@ export const AirHelpHeroPage: React.FC<AirHelpHeroPageProps> = ({
           />
 
           {/* AirHelp Claim Widget */}
-          <AirHelpWidget />
+          <AirHelpWidget key={language} />
         </main>
 
         {/* Trust & Features Row */}

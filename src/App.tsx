@@ -11,6 +11,7 @@ import { HotelHeroPage } from './components/HotelHeroPage';
 import { CarHeroPage } from './components/CarHeroPage';
 import { AirHelpHeroPage } from './components/AirHelpHeroPage';
 import { NavItem } from './types';
+import { useLanguage } from './context/LanguageContext';
 
 // Code-split secondary views, modals, and chat assistant for instant initial page loading
 const ContactPage = lazy(() => import('./components/ContactPage').then(m => ({ default: m.ContactPage })));
@@ -30,6 +31,7 @@ const CookiesModal = lazy(() => import('./components/CookiesModal').then(m => ({
 const TravelAssistantChat = lazy(() => import('./components/TravelAssistantChat').then(m => ({ default: m.TravelAssistantChat })));
 
 export default function App() {
+  const { language } = useLanguage();
   const [activeNav, setActiveNav] = useState<NavItem>('Flights');
   const [showAirHelpModal, setShowAirHelpModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);

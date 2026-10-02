@@ -190,7 +190,10 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   key={lang.code}
                   type="button"
-                  onClick={() => setLanguage(lang.code)}
+                  onClick={() => {
+                    setLanguage(lang.code);
+                    setMobileMenuOpen(false);
+                  }}
                   className={`px-3 py-1 rounded-lg text-xs transition-all cursor-pointer ${
                     language === lang.code ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-white/80 hover:text-white bg-white/10'
                   }`}

@@ -239,6 +239,17 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [language]);
 
+  // Synchronize across tabs or external updates
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'safarihoo_lang' && (e.newValue === 'FR' || e.newValue === 'EN')) {
+        setLanguageState(e.newValue as Language);
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   const t = (key: string): string => {
     return translations[language]?.[key] || translations['EN']?.[key] || key;
   };

@@ -13,7 +13,7 @@ export const HotelHeroPage: React.FC<HotelHeroPageProps> = ({
   onStartJourney,
   onViewDestinations,
 }) => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   return (
     <div id="hotel-page-view" className="w-full flex flex-col items-center relative">
@@ -66,7 +66,7 @@ export const HotelHeroPage: React.FC<HotelHeroPageProps> = ({
           />
 
           {/* Third-Party Hotel Search Widget */}
-          <HotelTripWidget />
+          <HotelTripWidget key={language} />
         </main>
 
         {/* Trust & Features Row */}
