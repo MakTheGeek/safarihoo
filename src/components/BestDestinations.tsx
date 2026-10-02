@@ -32,7 +32,8 @@ interface DestinationItem {
 }
 
 export const BestDestinations: React.FC = () => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+  const isFr = language === 'FR';
   const [activeCategory, setActiveCategory] = useState('All');
   const [selectedDetailPlace, setSelectedDetailPlace] = useState<'egypt' | 'paris' | 'newyork' | 'rome' | 'tokyo' | 'bali' | 'santorini' | 'dubai'>('newyork');
   const [isDetailLiked, setIsDetailLiked] = useState(false);
@@ -51,7 +52,7 @@ export const BestDestinations: React.FC = () => {
   const allDestinations: DestinationItem[] = [
     {
       id: 'newyork',
-      title: 'Manhattan Skyline',
+      title: isFr ? 'Panorama de Manhattan' : 'Manhattan Skyline',
       name: 'Manhattan',
       location: 'New York, USA',
       country: 'USA',
@@ -67,12 +68,14 @@ export const BestDestinations: React.FC = () => {
       temp: '24° C',
       rating: '4.8',
       price: '$1,180',
-      tag: 'Trending',
-      description: 'Immerse yourself in the bustling epicenter of culture, Broadway theaters, Central Park, and the unforgettable glittering skyline of Manhattan.'
+      tag: isFr ? 'Tendance' : 'Trending',
+      description: isFr 
+        ? 'Plongez au cœur de la culture, des théâtres de Broadway, de Central Park et de la célèbre silhouette scintillante de Manhattan.'
+        : 'Immerse yourself in the bustling epicenter of culture, Broadway theaters, Central Park, and the unforgettable glittering skyline of Manhattan.'
     },
     {
       id: 'paris',
-      title: 'Eiffel & Seine',
+      title: isFr ? 'Tour Eiffel & Seine' : 'Eiffel & Seine',
       name: 'Paris',
       location: 'Paris, France',
       country: 'France',
@@ -88,12 +91,14 @@ export const BestDestinations: React.FC = () => {
       temp: '22° C',
       rating: '4.9',
       price: '$1,450',
-      tag: 'Popular',
-      description: 'Experience the magic of the City of Light with iconic panoramic vistas, world-renowned architecture, haute cuisine, and scenic strolls along the Seine.'
+      tag: isFr ? 'Populaire' : 'Popular',
+      description: isFr
+        ? 'Vivez la magie de la Ville Lumière avec ses vues panoramiques, son architecture mondialement réputée et ses balades romantiques le long de la Seine.'
+        : 'Experience the magic of the City of Light with iconic panoramic vistas, world-renowned architecture, haute cuisine, and scenic strolls along the Seine.'
     },
     {
       id: 'egypt',
-      title: 'Great Pyramids',
+      title: isFr ? 'Grandes Pyramides' : 'Great Pyramids',
       name: 'Giza Pyramids',
       location: 'Giza, Egypt',
       country: 'Egypt',
@@ -109,12 +114,14 @@ export const BestDestinations: React.FC = () => {
       temp: '28° C',
       rating: '4.9',
       price: '$1,270',
-      tag: 'Top Wonder',
-      description: 'The iconic Giza Plateau features the Great Pyramid of Khufu, the enigmatic Sphinx, and thousands of years of ancient world history along the majestic Nile.'
+      tag: isFr ? 'Merveille' : 'Top Wonder',
+      description: isFr
+        ? 'Le plateau mythique de Gizeh abrite la Grande Pyramide de Khéops, l\'énigmatique Sphinx et des millénaires d\'histoire le long du Nil.'
+        : 'The iconic Giza Plateau features the Great Pyramid of Khufu, the enigmatic Sphinx, and thousands of years of ancient world history along the majestic Nile.'
     },
     {
       id: 'rome',
-      title: 'Colosseum & Forum',
+      title: isFr ? 'Colisée & Forum' : 'Colosseum & Forum',
       name: 'Rome',
       location: 'Rome, Italy',
       country: 'Italy',
@@ -130,12 +137,14 @@ export const BestDestinations: React.FC = () => {
       temp: '26° C',
       rating: '4.9',
       price: '$1,340',
-      tag: 'Heritage',
-      description: 'Step inside timeless antiquity exploring the Colosseum, the Pantheon, Vatican art treasures, and picturesque cobblestone piazzas.'
+      tag: isFr ? 'Patrimoine' : 'Heritage',
+      description: isFr
+        ? 'Voyagez au cœur de l\'antiquité en explorant le Colisée, le Panthéon, les trésors du Vatican et les magnifiques ruelles pavées.'
+        : 'Step inside timeless antiquity exploring the Colosseum, the Pantheon, Vatican art treasures, and picturesque cobblestone piazzas.'
     },
     {
       id: 'tokyo',
-      title: 'Shibuya & Shinjuku',
+      title: isFr ? 'Shibuya & Shinjuku' : 'Shibuya & Shinjuku',
       name: 'Tokyo',
       location: 'Tokyo, Japan',
       country: 'Japan',
@@ -151,12 +160,14 @@ export const BestDestinations: React.FC = () => {
       temp: '21° C',
       rating: '4.9',
       price: '$1,620',
-      tag: 'Modern',
-      description: 'A harmonious blend of cutting-edge technology and serene ancient shrines, offering neon-lit nightscapes, world-class culinary art, and vibrant pop culture.'
+      tag: isFr ? 'Futuriste' : 'Modern',
+      description: isFr
+        ? 'Une métropole fascinante où néons éblouissants, sanctuaires ancestraux, haute gastronomie et culture pop s\'harmonisent à la perfection.'
+        : 'A harmonious blend of cutting-edge technology and serene ancient shrines, offering neon-lit nightscapes, world-class culinary art, and vibrant pop culture.'
     },
     {
       id: 'santorini',
-      title: 'Oia White Caldera',
+      title: isFr ? 'Oia & Caldeira' : 'Oia White Caldera',
       name: 'Santorini',
       location: 'Santorini, Greece',
       country: 'Greece',
@@ -172,12 +183,14 @@ export const BestDestinations: React.FC = () => {
       temp: '25° C',
       rating: '4.9',
       price: '$1,520',
-      tag: 'Romance',
-      description: 'Iconic whitewashed cliffside villas, cobalt-blue domes, volcanic Aegean beaches, and world-renowned golden sunset vistas over the caldera.'
+      tag: isFr ? 'Romance' : 'Romance',
+      description: isFr
+        ? 'Villas blanches à flanc de falaise, dômes bleus emblématiques, plages volcaniques et couchers de soleil légendaires sur la mer Égée.'
+        : 'Iconic whitewashed cliffside villas, cobalt-blue domes, volcanic Aegean beaches, and world-renowned golden sunset vistas over the caldera.'
     },
     {
       id: 'bali',
-      title: 'Ubud & Seminyak',
+      title: isFr ? 'Ubud & Seminyak' : 'Ubud & Seminyak',
       name: 'Bali',
       location: 'Bali, Indonesia',
       country: 'Indonesia',
@@ -193,12 +206,14 @@ export const BestDestinations: React.FC = () => {
       temp: '29° C',
       rating: '4.9',
       price: '$980',
-      tag: 'Tropical',
-      description: 'Lush tropical rice terraces, spiritual water temples, serene surf retreats, and rejuvenating holistic wellness villas in paradise.'
+      tag: isFr ? 'Paradis' : 'Tropical',
+      description: isFr
+        ? 'Rizières en terrasses luxuriantes, temples sacrés au bord de l\'eau, spots de surf mondiaux et villas de bien-être ressourçantes.'
+        : 'Lush tropical rice terraces, spiritual water temples, serene surf retreats, and rejuvenating holistic wellness villas in paradise.'
     },
     {
       id: 'dubai',
-      title: 'Burj Khalifa & Desert',
+      title: isFr ? 'Burj Khalifa & Désert' : 'Burj Khalifa & Desert',
       name: 'Dubai',
       location: 'Dubai, UAE',
       country: 'UAE',
@@ -214,8 +229,10 @@ export const BestDestinations: React.FC = () => {
       temp: '32° C',
       rating: '4.8',
       price: '$1,390',
-      tag: 'Luxury',
-      description: 'Futuristic architectural wonders, luxurious shopping marinas, private desert safaris, and crystal warm waters along the Arabian Gulf.'
+      tag: isFr ? 'Luxe' : 'Luxury',
+      description: isFr
+        ? 'Merveilles architecturales futuristes, marinas de shopping prestigieuses, safaris dans les dunes dorées et eaux chaudes du golfe Persique.'
+        : 'Futuristic architectural wonders, luxurious shopping marinas, private desert safaris, and crystal warm waters along the Arabian Gulf.'
     }
   ];
 

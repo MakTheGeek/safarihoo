@@ -19,7 +19,7 @@ export const HeroHeading: React.FC<HeroHeadingProps> = ({
   onStartJourney,
   onViewDestinations,
 }) => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   const finalBadge = badgeText || t('hero.badge');
   const finalTitle = title || (

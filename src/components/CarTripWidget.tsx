@@ -6,12 +6,13 @@ export const CarTripWidget: React.FC = () => {
   const lastLocaleRef = useRef<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const { language } = useLanguage();
+  const isFr = language === 'FR';
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const localeParam = language === 'FR' ? 'fr' : 'en';
+    const localeParam = isFr ? 'fr' : 'en';
 
     // If already loaded for this locale, keep it
     if (lastLocaleRef.current === localeParam && container.children.length > 0) {
@@ -40,7 +41,6 @@ export const CarTripWidget: React.FC = () => {
       window.dispatchEvent(new Event('resize'));
       setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
       setTimeout(() => window.dispatchEvent(new Event('resize')), 300);
-      setTimeout(() => window.dispatchEvent(new Event('resize')), 800);
     };
 
     script.onerror = () => {
@@ -50,19 +50,18 @@ export const CarTripWidget: React.FC = () => {
     widgetDiv.appendChild(script);
     container.appendChild(widgetDiv);
 
-    // Backup timer in case onload is consumed
     const fallbackTimer = setTimeout(() => {
       setIsLoaded(true);
       window.dispatchEvent(new Event('resize'));
-    }, 1500);
+    }, 1000);
 
     return () => {
       clearTimeout(fallbackTimer);
     };
-  }, [language]);
+  }, [language, isFr]);
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-2 sm:px-4 my-4 relative z-20">
+    <div className="w-full max-w-6xl mx-auto px-2 sm:px-4 my-3 relative z-20">
       <style>{`
         .safarihoo-car-widget,
         #safarihoo-car-widget-container,
@@ -92,27 +91,18 @@ export const CarTripWidget: React.FC = () => {
         }
       `}</style>
 
-      {/* Shimmer skeleton while widget initializes */}
+      {/* Discreet loading spinner while widget initializes */}
       {!isLoaded && (
-        <div className="w-full min-h-[180px] rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md p-6 flex flex-col justify-center animate-pulse mb-2">
-          <div className="flex flex-col md:flex-row gap-4 w-full items-center justify-between">
-            <div className="h-12 w-full md:w-1/3 bg-white/10 rounded-xl" />
-            <div className="h-12 w-full md:w-1/3 bg-white/10 rounded-xl" />
-            <div className="h-12 w-full md:w-1/4 bg-blue-500/20 rounded-xl" />
-          </div>
-          <div className="mt-3 flex items-center justify-center gap-2 text-xs text-white/40">
-            <span className="inline-block w-2 h-2 rounded-full bg-blue-400 animate-ping" />
-            Loading rental car deals worldwide...
-          </div>
+        <div className="w-full py-5 flex items-center justify-center gap-2 text-xs text-white/50">
+          <div className="w-4 h-4 border-2 border-[#32a8dd] border-t-transparent rounded-full animate-spin" />
+          <span>{isFr ? 'Chargement des offres de location de voitures...' : 'Loading rental car deals worldwide...'}</span>
         </div>
       )}
 
       <div
         id="safarihoo-car-widget-container"
         ref={containerRef}
-        className={`w-full min-h-[180px] rounded-2xl overflow-visible transition-opacity duration-300 ${
-          isLoaded ? 'opacity-100' : 'opacity-90'
-        }`}
+        className="w-full min-h-[180px] rounded-2xl overflow-visible"
       />
     </div>
   );

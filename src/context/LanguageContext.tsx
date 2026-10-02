@@ -209,18 +209,35 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>(() => {
-    const saved = localStorage.getItem('safarihoo_lang');
-    return (saved === 'FR' || saved === 'EN') ? (saved as Language) : 'EN';
+    try {
+      const saved = localStorage.getItem('safarihoo_lang');
+      if (saved === 'FR' || saved === 'EN') return saved as Language;
+      if (typeof navigator !== 'undefined' && navigator.language && navigator.language.toLowerCase().startsWith('fr')) {
+        return 'FR';
+      }
+    } catch {
+      // Ignore storage errors
+    }
+    return 'FR';
   });
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     try {
       localStorage.setItem('safarihoo_lang', lang);
+      if (typeof document !== 'undefined') {
+        document.documentElement.lang = lang.toLowerCase();
+      }
     } catch {
       // Ignore storage errors
     }
   };
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = language.toLowerCase();
+    }
+  }, [language]);
 
   const t = (key: string): string => {
     return translations[language]?.[key] || translations['EN']?.[key] || key;

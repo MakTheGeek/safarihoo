@@ -88,65 +88,65 @@ export const Header: React.FC<HeaderProps> = ({
           );
         })}
 
-        {/* Compact Language Selector */}
-        <div className="relative" ref={langMenuRef}>
+        {/* 1-Click Fast Language Toggle (FR | EN) */}
+        <div 
+          id="language-switcher-pill"
+          className="flex items-center p-0.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md shadow-sm"
+        >
           <button
-            id="language-selector-button"
             type="button"
-            onClick={() => setLangMenuOpen(!langMenuOpen)}
-            className="flex items-center gap-1.5 py-1 px-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all cursor-pointer text-xs font-semibold tracking-wide shadow-sm backdrop-blur-md active:scale-95"
-            aria-label="Change Language"
-            title={language === 'FR' ? 'Changer de langue' : 'Switch language'}
+            onClick={() => setLanguage('FR')}
+            className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              language === 'FR'
+                ? 'bg-white text-zinc-950 shadow-sm scale-100'
+                : 'text-white/70 hover:text-white'
+            }`}
+            title="Passer en Français"
           >
-            <span>{language}</span>
-            <ChevronDown className={`w-3.5 h-3.5 text-white/80 transition-transform duration-200 ${langMenuOpen ? 'rotate-180' : ''}`} />
+            FR
           </button>
-
-          {/* Language Dropdown Menu */}
-          {langMenuOpen && (
-            <div 
-              id="language-dropdown-menu"
-              className="absolute right-0 top-full mt-2 w-32 bg-zinc-950/95 backdrop-blur-2xl border border-white/20 rounded-xl p-1.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150"
-            >
-              {LANGUAGES.map((lang) => {
-                const isSelected = language === lang.code;
-                return (
-                  <button
-                    key={lang.code}
-                    type="button"
-                    onClick={() => {
-                      setLanguage(lang.code);
-                      setLangMenuOpen(false);
-                    }}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 text-xs rounded-lg transition-all cursor-pointer ${
-                      isSelected ? 'bg-white text-zinc-950 font-bold shadow-sm' : 'text-white/85 hover:bg-white/10 hover:text-white'
-                    }`}
-                  >
-                    <span>{lang.name}</span>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-zinc-950 stroke-[2.5]" />}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={() => setLanguage('EN')}
+            className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              language === 'EN'
+                ? 'bg-white text-zinc-950 shadow-sm scale-100'
+                : 'text-white/70 hover:text-white'
+            }`}
+            title="Switch to English"
+          >
+            EN
+          </button>
         </div>
       </nav>
 
-      {/* Mobile Menu Toggle Button */}
-      <div className="md:hidden flex items-center gap-3">
-        {/* Mobile Quick Language Toggle Button (Compact) */}
-        <button
-          type="button"
-          onClick={() => {
-            const nextLang = language === 'EN' ? 'FR' : 'EN';
-            setLanguage(nextLang);
-          }}
-          className="py-1 px-2.5 rounded-full bg-white/10 border border-white/20 text-white text-xs font-semibold active:scale-95 transition-all"
-          aria-label="Switch Language"
-          title={language === 'FR' ? 'Passer en Anglais' : 'Passer en Français'}
-        >
-          <span>{language}</span>
-        </button>
+      {/* Mobile Header Controls */}
+      <div className="md:hidden flex items-center gap-2.5">
+        {/* Mobile 1-Click Toggle */}
+        <div className="flex items-center p-0.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md">
+          <button
+            type="button"
+            onClick={() => setLanguage('FR')}
+            className={`px-2 py-0.5 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
+              language === 'FR'
+                ? 'bg-white text-zinc-950 shadow-sm'
+                : 'text-white/70 hover:text-white'
+            }`}
+          >
+            FR
+          </button>
+          <button
+            type="button"
+            onClick={() => setLanguage('EN')}
+            className={`px-2 py-0.5 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
+              language === 'EN'
+                ? 'bg-white text-zinc-950 shadow-sm'
+                : 'text-white/70 hover:text-white'
+            }`}
+          >
+            EN
+          </button>
+        </div>
 
         <button
           id="mobile-menu-toggle"

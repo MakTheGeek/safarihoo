@@ -7,12 +7,12 @@ import { PartnersMarquee } from './components/PartnersMarquee';
 import { ReviewsSection } from './components/ReviewsSection';
 import { TrustBadges } from './components/TrustBadges';
 import { Footer } from './components/Footer';
+import { HotelHeroPage } from './components/HotelHeroPage';
+import { CarHeroPage } from './components/CarHeroPage';
+import { AirHelpHeroPage } from './components/AirHelpHeroPage';
 import { NavItem } from './types';
 
 // Code-split secondary views, modals, and chat assistant for instant initial page loading
-const HotelHeroPage = lazy(() => import('./components/HotelHeroPage').then(m => ({ default: m.HotelHeroPage })));
-const CarHeroPage = lazy(() => import('./components/CarHeroPage').then(m => ({ default: m.CarHeroPage })));
-const AirHelpHeroPage = lazy(() => import('./components/AirHelpHeroPage').then(m => ({ default: m.AirHelpHeroPage })));
 const ContactPage = lazy(() => import('./components/ContactPage').then(m => ({ default: m.ContactPage })));
 const AboutPage = lazy(() => import('./components/AboutPage').then(m => ({ default: m.AboutPage })));
 const CareersPage = lazy(() => import('./components/CareersPage').then(m => ({ default: m.CareersPage })));
@@ -74,34 +74,30 @@ export default function App() {
         onOpenContact={() => setShowContactModal(true)}
       />
 
-      {/* Main Page Content */}
+      {/* Core Services: Pre-mounted in DOM so widgets load in background and show with 0ms latency */}
+      <div className={activeNav === 'Hotels' ? 'w-full block' : 'hidden'}>
+        <HotelHeroPage
+          onStartJourney={handleStartJourney}
+          onViewDestinations={handleViewDestinations}
+        />
+      </div>
+
+      <div className={activeNav === 'Cars' ? 'w-full block' : 'hidden'}>
+        <CarHeroPage
+          onStartJourney={handleStartJourney}
+          onViewDestinations={handleViewDestinations}
+        />
+      </div>
+
+      <div className={activeNav === 'AirHelp' ? 'w-full block' : 'hidden'}>
+        <AirHelpHeroPage
+          onStartJourney={handleStartJourney}
+          onViewDestinations={handleViewDestinations}
+        />
+      </div>
+
+      {/* Secondary Pages (Loaded lazily on demand) */}
       <Suspense fallback={<div className="min-h-[50vh] flex items-center justify-center"><div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
-        <div className={activeNav === 'Hotels' ? 'w-full block' : 'hidden'}>
-          {activeNav === 'Hotels' && (
-            <HotelHeroPage
-              onStartJourney={handleStartJourney}
-              onViewDestinations={handleViewDestinations}
-            />
-          )}
-        </div>
-
-        <div className={activeNav === 'Cars' ? 'w-full block' : 'hidden'}>
-          {activeNav === 'Cars' && (
-            <CarHeroPage
-              onStartJourney={handleStartJourney}
-              onViewDestinations={handleViewDestinations}
-            />
-          )}
-        </div>
-
-        <div className={activeNav === 'AirHelp' ? 'w-full block' : 'hidden'}>
-          {activeNav === 'AirHelp' && (
-            <AirHelpHeroPage
-              onStartJourney={handleStartJourney}
-              onViewDestinations={handleViewDestinations}
-            />
-          )}
-        </div>
 
         <div className={activeNav === 'Contact' ? 'w-full block' : 'hidden'}>
           {activeNav === 'Contact' && <ContactPage />}
