@@ -1,17 +1,22 @@
-interface Env {
-  OPENROUTER_API_KEY?: string;
-  GEMINI_API_KEY?: string;
-}
-
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
 
-export const onRequestPost = async (context: { request: Request; env: Env }) => {
+export const config = {
+  runtime: 'edge',
+};
+
+export default async function handler(req: Request) {
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
-    const { request, env } = context;
-    const body = (await request.json()) as { messages?: Message[]; language?: string };
+    const body = (await req.json()) as { messages?: Message[]; language?: string };
     const { messages, language = 'fr' } = body || {};
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -21,8 +26,8 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
       });
     }
 
-    const openRouterApiKey = env.OPENROUTER_API_KEY;
-    const geminiApiKey = env.GEMINI_API_KEY;
+    const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+    const geminiApiKey = process.env.GEMINI_API_KEY;
     const isFr = (language || 'fr').toLowerCase().includes('fr');
 
     const systemPrompt = `Tu es l'assistant de voyage officiel de Safarihoo (plateforme mondiale tout-en-un de recherche et comparaison de vols pas chers, hôtels, locations de voitures et réclamation de compensation passager avec AirHelp).
@@ -39,7 +44,7 @@ Tes compétences :
 
     let reply = '';
 
-    // 1. Try OpenRouter free models if OPENROUTER_API_KEY is provided
+    // 1. Try OpenRouter if OPENROUTER_API_KEY is configured
     if (openRouterApiKey) {
       const openRouterModels = [
         'google/gemini-2.0-flash-exp:free',
@@ -83,7 +88,7 @@ Tes compétences :
             }
           }
         } catch (openRouterErr) {
-          console.warn(`OpenRouter error with ${model}:`, openRouterErr);
+          console.warn(`OpenRouter model ${model} error:`, openRouterErr);
         }
       }
     }
@@ -135,15 +140,15 @@ Tes compétences :
     if (!reply) {
       if (!openRouterApiKey && !geminiApiKey) {
         const fallbackResponse = isFr
-          ? "Bonjour ! Je suis l'assistant voyage Safarihoo. Pour activer les réponses de l'IA avec votre clé gratuite OpenRouter, configurez la variable OPENROUTER_API_KEY sur votre projet Cloudflare Pages. En attendant, n'hésitez pas à lancer vos recherches de vols, hôtels et locations de voitures via les comparateurs en haut de page !"
-          : "Hello! I am your Safarihoo travel assistant. To enable real-time AI responses with your free OpenRouter API key, configure the OPENROUTER_API_KEY environment variable on your Cloudflare Pages dashboard. Meanwhile, you can search and compare flights, hotels, and car rentals using our tools above!";
+          ? "Bonjour ! Je suis l'assistant voyage Safarihoo. Pour activer les réponses de l'IA avec votre clé gratuite OpenRouter, configurez la variable OPENROUTER_API_KEY sur votre projet Vercel. En attendant, n'hésitez pas à lancer vos recherches de vols, hôtels et locations de voitures via les comparateurs en haut de page !"
+          : "Hello! I am your Safarihoo travel assistant. To enable real-time AI responses with your free OpenRouter API key, configure the OPENROUTER_API_KEY environment variable on your Vercel dashboard. Meanwhile, you can search and compare flights, hotels, and car rentals using our tools above!";
         return new Response(JSON.stringify({ reply: fallbackResponse }), {
           headers: { 'Content-Type': 'application/json' },
         });
       }
 
       reply = isFr
-        ? "Comment puis-je vous aider pour votre prochain voyage ?"
+        ? "Comment puis-je vous aider pour organiser votre prochain voyage ?"
         : "How can I help you plan your next trip?";
     }
 
@@ -154,7 +159,7 @@ Tes compétences :
     return new Response(
       JSON.stringify({
         error: 'Failed to generate response',
-        message: error?.message || 'Cloudflare edge function error',
+        message: error?.message || 'Server error',
       }),
       {
         status: 500,
@@ -162,4 +167,4 @@ Tes compétences :
       }
     );
   }
-};
+}
