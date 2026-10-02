@@ -40,7 +40,7 @@ export const TravelPayoutsSearchWidget: React.FC = () => {
       onDone();
       window.dispatchEvent(new Event('resize'));
       setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
-      setTimeout(() => window.dispatchEvent(new Event('resize')), 200);
+      setTimeout(() => window.dispatchEvent(new Event('resize')), 150);
     };
 
     script.onerror = () => onDone();
@@ -50,11 +50,11 @@ export const TravelPayoutsSearchWidget: React.FC = () => {
     setTimeout(() => {
       onDone();
       window.dispatchEvent(new Event('resize'));
-    }, 1500);
+    }, 1200);
   };
 
   useEffect(() => {
-    // 1. Initialize active locale first
+    // 1. Initialize active locale with highest priority
     if (isFr) {
       if (frContainerRef.current && !frInitializedRef.current) {
         frInitializedRef.current = true;
@@ -67,7 +67,7 @@ export const TravelPayoutsSearchWidget: React.FC = () => {
       }
     }
 
-    // 2. Warm up alternate locale in background after initial paint
+    // 2. Warm up alternate locale in background ONLY after 4 seconds of idle time
     const warmTimer = setTimeout(() => {
       if (isFr) {
         if (enContainerRef.current && !enInitializedRef.current) {
@@ -80,7 +80,7 @@ export const TravelPayoutsSearchWidget: React.FC = () => {
           initWidget(frContainerRef.current, 'fr', () => setFrLoaded(true));
         }
       }
-    }, 350);
+    }, 4000);
 
     return () => clearTimeout(warmTimer);
   }, []);
@@ -100,8 +100,8 @@ export const TravelPayoutsSearchWidget: React.FC = () => {
     }
 
     window.dispatchEvent(new Event('resize'));
-    const t1 = setTimeout(() => window.dispatchEvent(new Event('resize')), 40);
-    const t2 = setTimeout(() => window.dispatchEvent(new Event('resize')), 150);
+    const t1 = setTimeout(() => window.dispatchEvent(new Event('resize')), 30);
+    const t2 = setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
@@ -115,6 +115,14 @@ export const TravelPayoutsSearchWidget: React.FC = () => {
       id="travelpayouts-search-container" 
       className="w-full my-2 sm:my-3 relative z-20 select-none overflow-hidden min-h-[68px] sm:min-h-[76px]"
     >
+      {/* Discreet loading spinner while active widget initializes - NO transparent mockup widget */}
+      {!activeLoaded && (
+        <div className="w-full py-6 flex items-center justify-center gap-2 text-white/50 text-xs">
+          <div className="w-4 h-4 border-2 border-[#32a8dd] border-t-transparent rounded-full animate-spin" />
+          <span>{isFr ? 'Chargement du comparateur de vols...' : 'Loading flight search engine...'}</span>
+        </div>
+      )}
+
       {/* French Widget Container */}
       <div 
         ref={frContainerRef} 
@@ -126,14 +134,6 @@ export const TravelPayoutsSearchWidget: React.FC = () => {
         ref={enContainerRef} 
         className={!isFr ? 'w-full relative opacity-100 z-10 transition-opacity duration-150' : 'w-full absolute -left-[9999px] top-0 opacity-0 pointer-events-none -z-10'}
       />
-
-      {/* Discreet loading spinner while active widget initializes */}
-      {!activeLoaded && (
-        <div className="w-full py-4 flex items-center justify-center gap-2 text-white/50 text-xs">
-          <div className="w-4 h-4 border-2 border-[#32a8dd] border-t-transparent rounded-full animate-spin" />
-          <span>{isFr ? 'Chargement du comparateur de vols...' : 'Loading flight search engine...'}</span>
-        </div>
-      )}
     </div>
   );
 };

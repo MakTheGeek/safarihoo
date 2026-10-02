@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Header } from './components/Header';
 import { HeroHeading } from './components/HeroHeading';
 import { BookingCard } from './components/BookingCard';
@@ -33,13 +33,29 @@ const TravelAssistantChat = lazy(() => import('./components/TravelAssistantChat'
 export default function App() {
   const { language } = useLanguage();
   const [activeNav, setActiveNav] = useState<NavItem>('Flights');
+  const [hasVisitedHotels, setHasVisitedHotels] = useState(false);
+  const [hasVisitedCars, setHasVisitedCars] = useState(false);
+  const [hasVisitedAirHelp, setHasVisitedAirHelp] = useState(false);
   const [showAirHelpModal, setShowAirHelpModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showNewsletterModal, setShowNewsletterModal] = useState(false);
   const [showCookiesModal, setShowCookiesModal] = useState(false);
 
+  // Background idle warm-up of secondary widgets after 3.5s so Flights gets 100% of initial bandwidth
+  useEffect(() => {
+    const idleTimer = setTimeout(() => {
+      setHasVisitedHotels(true);
+      setHasVisitedCars(true);
+      setHasVisitedAirHelp(true);
+    }, 3500);
+    return () => clearTimeout(idleTimer);
+  }, []);
+
   const handleNavSelect = (item: NavItem) => {
     setActiveNav(item);
+    if (item === 'Hotels') setHasVisitedHotels(true);
+    if (item === 'Cars') setHasVisitedCars(true);
+    if (item === 'AirHelp') setHasVisitedAirHelp(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
     // Multi-stage resize dispatch to force instant recalculation of external iframes
     window.dispatchEvent(new Event('resize'));
@@ -76,26 +92,32 @@ export default function App() {
         onOpenContact={() => setShowContactModal(true)}
       />
 
-      {/* Core Services: Pre-mounted in DOM so widgets load in background and show with 0ms latency */}
+      {/* Core Services: Defer secondary tabs to give initial Flights load 100% of network priority */}
       <div className={activeNav === 'Hotels' ? 'w-full block' : 'hidden'}>
-        <HotelHeroPage
-          onStartJourney={handleStartJourney}
-          onViewDestinations={handleViewDestinations}
-        />
+        {(hasVisitedHotels || activeNav === 'Hotels') && (
+          <HotelHeroPage
+            onStartJourney={handleStartJourney}
+            onViewDestinations={handleViewDestinations}
+          />
+        )}
       </div>
 
       <div className={activeNav === 'Cars' ? 'w-full block' : 'hidden'}>
-        <CarHeroPage
-          onStartJourney={handleStartJourney}
-          onViewDestinations={handleViewDestinations}
-        />
+        {(hasVisitedCars || activeNav === 'Cars') && (
+          <CarHeroPage
+            onStartJourney={handleStartJourney}
+            onViewDestinations={handleViewDestinations}
+          />
+        )}
       </div>
 
       <div className={activeNav === 'AirHelp' ? 'w-full block' : 'hidden'}>
-        <AirHelpHeroPage
-          onStartJourney={handleStartJourney}
-          onViewDestinations={handleViewDestinations}
-        />
+        {(hasVisitedAirHelp || activeNav === 'AirHelp') && (
+          <AirHelpHeroPage
+            onStartJourney={handleStartJourney}
+            onViewDestinations={handleViewDestinations}
+          />
+        )}
       </div>
 
       {/* Secondary Pages (Loaded lazily on demand) */}

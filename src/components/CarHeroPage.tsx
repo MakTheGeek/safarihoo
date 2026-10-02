@@ -20,11 +20,10 @@ export const CarHeroPage: React.FC<CarHeroPageProps> = ({
       {/* Cinematic Video Background for Cars */}
       <div className="absolute inset-0 w-full h-[760px] md:h-[860px] lg:h-[920px] overflow-hidden pointer-events-none z-0">
         <video
-          autoPlay
           loop
           muted
           playsInline
-          preload="auto"
+          preload="none"
           poster="https://res.cloudinary.com/opy809y1/video/upload/so_0,q_auto,f_auto,w_1280/v1787691370/Cars.video.jpg"
           className="w-full h-full object-cover object-center opacity-85 scale-[1.02] filter brightness-105 contrast-100"
           aria-hidden="true"
