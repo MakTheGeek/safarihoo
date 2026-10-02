@@ -66,7 +66,7 @@ export const HotelHeroPage: React.FC<HotelHeroPageProps> = ({
           />
 
           {/* Third-Party Hotel Search Widget */}
-          <HotelTripWidget key={language} />
+          <HotelTripWidget />
         </main>
 
         {/* Trust & Features Row */}

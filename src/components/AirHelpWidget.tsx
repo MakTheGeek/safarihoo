@@ -2,29 +2,21 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
 export const AirHelpWidget: React.FC = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const lastLocaleRef = useRef<string | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const frContainerRef = useRef<HTMLDivElement>(null);
+  const enContainerRef = useRef<HTMLDivElement>(null);
+
+  const frInitializedRef = useRef(false);
+  const enInitializedRef = useRef(false);
+
+  const [frLoaded, setFrLoaded] = useState(false);
+  const [enLoaded, setEnLoaded] = useState(false);
+
   const { language } = useLanguage();
   const isFr = language === 'FR';
 
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const localeParam = isFr ? 'fr' : 'en';
-
-    if (lastLocaleRef.current === localeParam && container.children.length > 0) {
-      setIsLoaded(true);
-      window.dispatchEvent(new Event('resize'));
-      return;
-    }
-
-    lastLocaleRef.current = localeParam;
-    setIsLoaded(false);
+  const initWidget = (container: HTMLDivElement, locale: 'fr' | 'en', onDone: () => void) => {
     container.innerHTML = '';
 
-    // Create wrapper for the AirHelp widget
     const widgetDiv = document.createElement('div');
     widgetDiv.className = 'safarihoo-airhelp-widget';
     widgetDiv.style.width = '100%';
@@ -32,32 +24,80 @@ export const AirHelpWidget: React.FC = () => {
 
     const script = document.createElement('script');
     script.async = true;
-    script.src = `https://tpemd.com/content?trs=429016&shmarker=569298&lang=${localeParam}&powered_by=true&campaign_id=120&promo_id=8679`;
+    script.src = `https://tpemd.com/content?trs=429016&shmarker=569298&lang=${locale}&powered_by=true&campaign_id=120&promo_id=8679`;
     script.charset = 'utf-8';
+    script.setAttribute('fetchpriority', 'high');
 
     script.onload = () => {
-      setIsLoaded(true);
+      onDone();
       window.dispatchEvent(new Event('resize'));
       setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
       setTimeout(() => window.dispatchEvent(new Event('resize')), 300);
     };
 
-    script.onerror = () => {
-      setIsLoaded(true);
-    };
+    script.onerror = () => onDone();
 
     widgetDiv.appendChild(script);
     container.appendChild(widgetDiv);
 
-    const fallbackTimer = setTimeout(() => {
-      setIsLoaded(true);
+    setTimeout(() => {
+      onDone();
       window.dispatchEvent(new Event('resize'));
-    }, 1000);
+    }, 1200);
+  };
 
-    return () => {
-      clearTimeout(fallbackTimer);
-    };
-  }, [language, isFr]);
+  useEffect(() => {
+    // 1. Initialize active locale first
+    if (isFr) {
+      if (frContainerRef.current && !frInitializedRef.current) {
+        frInitializedRef.current = true;
+        initWidget(frContainerRef.current, 'fr', () => setFrLoaded(true));
+      }
+    } else {
+      if (enContainerRef.current && !enInitializedRef.current) {
+        enInitializedRef.current = true;
+        initWidget(enContainerRef.current, 'en', () => setEnLoaded(true));
+      }
+    }
+
+    // 2. Warm up alternate locale in background after initial paint
+    const warmTimer = setTimeout(() => {
+      if (isFr) {
+        if (enContainerRef.current && !enInitializedRef.current) {
+          enInitializedRef.current = true;
+          initWidget(enContainerRef.current, 'en', () => setEnLoaded(true));
+        }
+      } else {
+        if (frContainerRef.current && !frInitializedRef.current) {
+          frInitializedRef.current = true;
+          initWidget(frContainerRef.current, 'fr', () => setFrLoaded(true));
+        }
+      }
+    }, 400);
+
+    return () => clearTimeout(warmTimer);
+  }, []);
+
+  // When language switches, trigger layout recalculations
+  useEffect(() => {
+    if (isFr) {
+      if (frContainerRef.current && !frInitializedRef.current) {
+        frInitializedRef.current = true;
+        initWidget(frContainerRef.current, 'fr', () => setFrLoaded(true));
+      }
+    } else {
+      if (enContainerRef.current && !enInitializedRef.current) {
+        enInitializedRef.current = true;
+        initWidget(enContainerRef.current, 'en', () => setEnLoaded(true));
+      }
+    }
+
+    window.dispatchEvent(new Event('resize'));
+    const t1 = setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+    return () => clearTimeout(t1);
+  }, [isFr]);
+
+  const activeLoaded = isFr ? frLoaded : enLoaded;
 
   return (
     <div className="w-full max-w-6xl mx-auto px-2 sm:px-4 my-3 relative z-20">
@@ -90,18 +130,26 @@ export const AirHelpWidget: React.FC = () => {
         }
       `}</style>
 
-      {/* Discreet loading spinner while widget initializes */}
-      {!isLoaded && (
+      {/* Discreet loading spinner while active widget initializes */}
+      {!activeLoaded && (
         <div className="w-full py-5 flex items-center justify-center gap-2 text-xs text-white/50">
           <div className="w-4 h-4 border-2 border-[#32a8dd] border-t-transparent rounded-full animate-spin" />
-          <span>{isFr ? 'Chargement du vérificateur d’indemnisation AirHelp...' : 'Loading flight compensation checker...'}</span>
+          <span>{isFr ? 'Chargement du module de compensation AirHelp...' : 'Loading AirHelp passenger compensation engine...'}</span>
         </div>
       )}
 
-      <div
-        id="safarihoo-airhelp-widget-container"
-        ref={containerRef}
-        className="w-full min-h-[180px] rounded-2xl overflow-visible"
+      {/* French Widget Container */}
+      <div 
+        ref={frContainerRef} 
+        id="safarihoo-airhelp-widget-container-fr" 
+        className={isFr ? 'w-full relative opacity-100 z-10 transition-opacity duration-150' : 'w-full absolute -left-[9999px] top-0 opacity-0 pointer-events-none -z-10'}
+      />
+
+      {/* English Widget Container */}
+      <div 
+        ref={enContainerRef} 
+        id="safarihoo-airhelp-widget-container-en" 
+        className={!isFr ? 'w-full relative opacity-100 z-10 transition-opacity duration-150' : 'w-full absolute -left-[9999px] top-0 opacity-0 pointer-events-none -z-10'}
       />
     </div>
   );

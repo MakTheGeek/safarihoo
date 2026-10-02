@@ -66,7 +66,7 @@ export const AirHelpHeroPage: React.FC<AirHelpHeroPageProps> = ({
           />
 
           {/* AirHelp Claim Widget */}
-          <AirHelpWidget key={language} />
+          <AirHelpWidget />
         </main>
 
         {/* Trust & Features Row */}

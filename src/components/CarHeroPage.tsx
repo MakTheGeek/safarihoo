@@ -66,7 +66,7 @@ export const CarHeroPage: React.FC<CarHeroPageProps> = ({
           />
 
           {/* Search Widget */}
-          <CarTripWidget key={language} />
+          <CarTripWidget />
         </main>
 
         {/* Trust & Features Row */}
