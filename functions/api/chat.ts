@@ -1,4 +1,5 @@
 interface Env {
+  OPENROUTER_API_KEY?: string;
   GEMINI_API_KEY?: string;
 }
 
@@ -20,17 +21,9 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
       });
     }
 
-    const apiKey = env.GEMINI_API_KEY;
+    const openRouterApiKey = env.OPENROUTER_API_KEY;
+    const geminiApiKey = env.GEMINI_API_KEY;
     const isFr = (language || 'fr').toLowerCase().includes('fr');
-
-    if (!apiKey) {
-      const fallbackResponse = isFr
-        ? "Bonjour ! Je suis l'assistant voyage Safarihoo. Pour activer les réponses en temps réel par intelligence artificielle, assurez-vous que la variable d'environnement GEMINI_API_KEY est configurée sur votre projet Cloudflare Pages. En attendant, n'hésitez pas à lancer vos recherches de vols, hôtels et locations de voitures via les comparateurs en haut de page !"
-        : "Hello! I am your Safarihoo travel assistant. To enable real-time AI responses, please configure the GEMINI_API_KEY environment variable on your Cloudflare Pages dashboard. Meanwhile, you can search and compare flights, hotels, and car rentals using our tools above!";
-      return new Response(JSON.stringify({ reply: fallbackResponse }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
 
     const systemPrompt = `Tu es l'assistant de voyage officiel de Safarihoo (plateforme mondiale tout-en-un de recherche et comparaison de vols pas chers, hôtels, locations de voitures et réclamation de compensation passager avec AirHelp).
 Ton style : accueillant, expert, concis, bienveillant et axé sur les bons plans.
@@ -44,57 +37,111 @@ Tes compétences :
 - Sois concis, utilise des listes à puces claires et aérées.
 - Encourage l'utilisateur à effectuer sa recherche en haut de la page sur le comparateur Safarihoo.`;
 
-    const contents = messages.map((m) => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }],
-    }));
-
-    const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash'];
     let reply = '';
-    let lastError: any = null;
 
-    for (const model of modelsToTry) {
-      try {
-        const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-          {
+    // 1. Try OpenRouter free models if OPENROUTER_API_KEY is provided
+    if (openRouterApiKey) {
+      const openRouterModels = [
+        'google/gemini-2.0-flash-exp:free',
+        'meta-llama/llama-3.3-70b-instruct:free',
+        'mistralai/mistral-7b-instruct:free',
+        'deepseek/deepseek-r1:free',
+        'openrouter/auto',
+      ];
+
+      const openRouterMessages = [
+        { role: 'system', content: systemPrompt },
+        ...messages.map((m) => ({
+          role: m.role === 'assistant' ? 'assistant' : 'user',
+          content: m.content,
+        })),
+      ];
+
+      for (const model of openRouterModels) {
+        try {
+          const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
+              'Authorization': `Bearer ${openRouterApiKey}`,
+              'HTTP-Referer': 'https://safarihoo.com',
+              'X-Title': 'Safarihoo Travel Assistant',
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              contents,
-              systemInstruction: {
-                parts: [{ text: systemPrompt }],
-              },
-              generationConfig: {
-                temperature: 0.7,
-              },
+              model,
+              messages: openRouterMessages,
+              temperature: 0.7,
             }),
-          }
-        );
+          });
 
-        if (geminiRes.ok) {
-          const data: any = await geminiRes.json();
-          const generatedText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (generatedText) {
-            reply = generatedText;
-            break;
+          if (res.ok) {
+            const data: any = await res.json();
+            const text = data?.choices?.[0]?.message?.content;
+            if (text) {
+              reply = text;
+              break;
+            }
           }
-        } else {
-          const errData = await geminiRes.text();
-          console.warn(`Model ${model} failed:`, errData);
+        } catch (openRouterErr) {
+          console.warn(`OpenRouter error with ${model}:`, openRouterErr);
         }
-      } catch (err) {
-        lastError = err;
       }
     }
 
-    if (!reply && lastError) {
-      throw lastError;
+    // 2. Fallback to Gemini if OpenRouter wasn't configured or failed
+    if (!reply && geminiApiKey) {
+      const contents = messages.map((m) => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }],
+      }));
+
+      const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash'];
+      for (const model of modelsToTry) {
+        try {
+          const geminiRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                contents,
+                systemInstruction: {
+                  parts: [{ text: systemPrompt }],
+                },
+                generationConfig: {
+                  temperature: 0.7,
+                },
+              }),
+            }
+          );
+
+          if (geminiRes.ok) {
+            const data: any = await geminiRes.json();
+            const generatedText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (generatedText) {
+              reply = generatedText;
+              break;
+            }
+          }
+        } catch (err) {
+          console.warn(`Gemini model ${model} failed:`, err);
+        }
+      }
     }
 
+    // 3. Fallback message if neither key was set or both failed
     if (!reply) {
+      if (!openRouterApiKey && !geminiApiKey) {
+        const fallbackResponse = isFr
+          ? "Bonjour ! Je suis l'assistant voyage Safarihoo. Pour activer les réponses de l'IA avec votre clé gratuite OpenRouter, configurez la variable OPENROUTER_API_KEY sur votre projet Cloudflare Pages. En attendant, n'hésitez pas à lancer vos recherches de vols, hôtels et locations de voitures via les comparateurs en haut de page !"
+          : "Hello! I am your Safarihoo travel assistant. To enable real-time AI responses with your free OpenRouter API key, configure the OPENROUTER_API_KEY environment variable on your Cloudflare Pages dashboard. Meanwhile, you can search and compare flights, hotels, and car rentals using our tools above!";
+        return new Response(JSON.stringify({ reply: fallbackResponse }), {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
       reply = isFr
         ? "Comment puis-je vous aider pour votre prochain voyage ?"
         : "How can I help you plan your next trip?";
