@@ -1,0 +1,6 @@
+{
+  "name": "Safarihoo",
+  "description": "Travel and flight booking platform with AI travel planner and interactive hero section.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
