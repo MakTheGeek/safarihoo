@@ -28,7 +28,6 @@ const AirHelpModal = lazy(() => import('./components/AirHelpModal').then(m => ({
 const ContactModal = lazy(() => import('./components/ContactModal').then(m => ({ default: m.ContactModal })));
 const NewsletterModal = lazy(() => import('./components/NewsletterModal').then(m => ({ default: m.NewsletterModal })));
 const CookiesModal = lazy(() => import('./components/CookiesModal').then(m => ({ default: m.CookiesModal })));
-const TravelAssistantChat = lazy(() => import('./components/TravelAssistantChat').then(m => ({ default: m.TravelAssistantChat })));
 
 export default function App() {
   const { language } = useLanguage();
@@ -278,11 +277,6 @@ export default function App() {
             onClose={() => setShowCookiesModal(false)}
           />
         )}
-
-        {/* AI Travel Assistant Chatbot loaded lazily */}
-        <TravelAssistantChat
-          onNavigateToTab={(tab) => handleNavSelect(tab)}
-        />
       </Suspense>
     </div>
   );
