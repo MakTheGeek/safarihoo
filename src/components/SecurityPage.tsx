@@ -15,7 +15,7 @@ export const SecurityPage: React.FC = () => {
     badge1Desc: isFr ? 'Chiffrement bancaire 256 bits' : '256-bit Bank-Grade Encryption',
     badge2Title: isFr ? 'Conformité PCI-DSS' : 'PCI-DSS Compliant',
     badge2Desc: isFr ? 'Redirections partenaires sécurisées' : 'Direct Partner Handoffs',
-    badge3Title: isFr ? 'Protection Cloudflare DDoS' : 'Cloudflare DDoS Shield',
+    badge3Title: isFr ? 'Protection Edge & DDoS' : 'Edge & DDoS Shield',
     badge3Desc: isFr ? 'Défense périphérique permanente' : 'Continuous Edge Defense',
     sec1Title: isFr ? '1. Sécurité du Transport de Bout en Bout' : '1. End-to-End Transport Security',
     sec1Text: isFr
