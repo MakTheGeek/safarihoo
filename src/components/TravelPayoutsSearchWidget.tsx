@@ -18,12 +18,15 @@ export const TravelPayoutsSearchWidget: React.FC = () => {
     container.innerHTML = '';
 
     const observer = new MutationObserver(() => {
+      // Any child node added that is not a SCRIPT is the widget component (<tp-cascoon>, etc.)
       const hasContent = Array.from(container.children).some(
-        (child) => child.tagName !== 'SCRIPT' && (child.innerHTML.trim() !== '' || child.tagName === 'IFRAME')
+        (child) => child.tagName !== 'SCRIPT'
       );
       if (hasContent) {
         onDone();
         window.dispatchEvent(new Event('resize'));
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 40);
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 150);
         observer.disconnect();
       }
     });
@@ -32,7 +35,7 @@ export const TravelPayoutsSearchWidget: React.FC = () => {
 
     const script = document.createElement('script');
     script.src = `https://tpemd.com/content?currency=usd&trs=429016&shmarker=569298&show_hotels=false&powered_by=false&locale=${locale}&searchUrl=www.aviasales.com%2Fsearch&primary_override=%2332a8dd&color_button=&color_icons=%230D0D0Eff&dark=%23262626&light=%23FFFFFFFf&secondary=%23FFFFFFFf&special=%23C4C4C4&color_focused=%2332a8dd&border_radius=0&no_labels=true&plain=true&promo_id=7879&campaign_id=100`;
-    script.async = true;
+    script.async = false; // Execute immediately upon receipt without low-priority deferral
     script.charset = 'utf-8';
     script.setAttribute('fetchpriority', 'high');
 
@@ -50,24 +53,70 @@ export const TravelPayoutsSearchWidget: React.FC = () => {
     setTimeout(() => {
       onDone();
       window.dispatchEvent(new Event('resize'));
-    }, 1200);
+    }, 1000);
   };
 
   useEffect(() => {
-    // 1. Initialize active locale with highest priority
-    if (isFr) {
-      if (frContainerRef.current && !frInitializedRef.current) {
+    // 1. Check if the preloaded widget from index.html is available
+    if (isFr && !frInitializedRef.current) {
+      const preloaded = document.getElementById('tp-preloaded-flight-widget');
+      if (preloaded && frContainerRef.current) {
+        const widgetNode = Array.from(preloaded.children).find(
+          (child) => child.tagName !== 'SCRIPT'
+        );
+
+        if (widgetNode) {
+          frContainerRef.current.appendChild(widgetNode);
+          frInitializedRef.current = true;
+          setFrLoaded(true);
+          window.dispatchEvent(new Event('resize'));
+          setTimeout(() => window.dispatchEvent(new Event('resize')), 30);
+          setTimeout(() => window.dispatchEvent(new Event('resize')), 120);
+        } else {
+          // If the early script in index.html is still parsing, observe it
+          const observer = new MutationObserver(() => {
+            const node = Array.from(preloaded.children).find(
+              (child) => child.tagName !== 'SCRIPT'
+            );
+            if (node && frContainerRef.current && !frInitializedRef.current) {
+              frInitializedRef.current = true;
+              frContainerRef.current.appendChild(node);
+              setFrLoaded(true);
+              window.dispatchEvent(new Event('resize'));
+              setTimeout(() => window.dispatchEvent(new Event('resize')), 30);
+              setTimeout(() => window.dispatchEvent(new Event('resize')), 120);
+              observer.disconnect();
+            }
+          });
+
+          observer.observe(preloaded, { childList: true, subtree: true });
+
+          // Fallback if preloaded element failed for any reason
+          const fallbackTimer = setTimeout(() => {
+            observer.disconnect();
+            if (!frInitializedRef.current && frContainerRef.current) {
+              frInitializedRef.current = true;
+              initWidget(frContainerRef.current, 'fr', () => setFrLoaded(true));
+            }
+          }, 1500);
+
+          return () => {
+            observer.disconnect();
+            clearTimeout(fallbackTimer);
+          };
+        }
+      } else if (frContainerRef.current) {
         frInitializedRef.current = true;
         initWidget(frContainerRef.current, 'fr', () => setFrLoaded(true));
       }
-    } else {
-      if (enContainerRef.current && !enInitializedRef.current) {
+    } else if (!isFr && !enInitializedRef.current) {
+      if (enContainerRef.current) {
         enInitializedRef.current = true;
         initWidget(enContainerRef.current, 'en', () => setEnLoaded(true));
       }
     }
 
-    // 2. Warm up alternate locale in background ONLY after 4 seconds of idle time
+    // 2. Warm up alternate locale ONLY after 4 seconds of idle time
     const warmTimer = setTimeout(() => {
       if (isFr) {
         if (enContainerRef.current && !enInitializedRef.current) {
@@ -115,9 +164,9 @@ export const TravelPayoutsSearchWidget: React.FC = () => {
       id="travelpayouts-search-container" 
       className="w-full my-2 sm:my-3 relative z-20 select-none overflow-hidden min-h-[68px] sm:min-h-[76px]"
     >
-      {/* Discreet loading spinner while active widget initializes - NO transparent mockup widget */}
+      {/* Absolute centered spinner so layout never jumps */}
       {!activeLoaded && (
-        <div className="w-full py-6 flex items-center justify-center gap-2 text-white/50 text-xs">
+        <div className="absolute inset-0 flex items-center justify-center gap-2 text-white/50 text-xs z-0 pointer-events-none">
           <div className="w-4 h-4 border-2 border-[#32a8dd] border-t-transparent rounded-full animate-spin" />
           <span>{isFr ? 'Chargement du comparateur de vols...' : 'Loading flight search engine...'}</span>
         </div>

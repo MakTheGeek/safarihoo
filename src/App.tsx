@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { Header } from './components/Header';
 import { HeroHeading } from './components/HeroHeading';
 import { BookingCard } from './components/BookingCard';
@@ -40,6 +40,17 @@ export default function App() {
   const [showContactModal, setShowContactModal] = useState(false);
   const [showNewsletterModal, setShowNewsletterModal] = useState(false);
   const [showCookiesModal, setShowCookiesModal] = useState(false);
+  const heroVideoRef = useRef<HTMLVideoElement>(null);
+
+  // Smoothly trigger hero video playback with a small delay so flight widget loads with 100% network priority
+  useEffect(() => {
+    const videoTimer = setTimeout(() => {
+      if (heroVideoRef.current) {
+        heroVideoRef.current.play().catch(() => {});
+      }
+    }, 400);
+    return () => clearTimeout(videoTimer);
+  }, []);
 
   // Background idle warm-up of secondary widgets after 3.5s so Flights gets 100% of initial bandwidth
   useEffect(() => {
@@ -170,11 +181,11 @@ export default function App() {
         {/* Cinematic Video Background for Flights Homepage */}
         <div className="absolute inset-0 w-full h-[760px] md:h-[860px] lg:h-[920px] overflow-hidden pointer-events-none z-0 bg-neutral-950">
           <video
-            autoPlay
+            ref={heroVideoRef}
             loop
             muted
             playsInline
-            preload="metadata"
+            preload="none"
             poster="https://res.cloudinary.com/opy809y1/video/upload/so_0,q_auto,f_auto,w_1280/v1787504639/kling_20260824_Image_to_Video_Create_a_p_213_0.jpg"
             className="w-full h-full object-cover object-center opacity-85 scale-[1.02] filter brightness-105 contrast-100"
             aria-hidden="true"
