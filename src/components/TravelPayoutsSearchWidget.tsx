@@ -2,38 +2,34 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
 export const TravelPayoutsSearchWidget: React.FC = () => {
-  const frContainerRef = useRef<HTMLDivElement>(null);
-  const enContainerRef = useRef<HTMLDivElement>(null);
-
-  const frInitializedRef = useRef(false);
-  const enInitializedRef = useRef(false);
-
-  const [frLoaded, setFrLoaded] = useState(false);
-  const [enLoaded, setEnLoaded] = useState(false);
-
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
   const { language } = useLanguage();
   const isFr = language === 'FR';
+  const locale = isFr ? 'fr' : 'en';
 
-  const initWidget = (container: HTMLDivElement, locale: 'fr' | 'en', onDone: () => void) => {
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let isSubscribed = true;
+    setIsLoaded(false);
     container.innerHTML = '';
 
-    // Fast MutationObserver: triggers the split-second <tp-cascoon> or any element is appended
     const observer = new MutationObserver(() => {
       const hasContent = Array.from(container.children).some(
         (child) => child.tagName !== 'SCRIPT'
       );
-      if (hasContent) {
-        onDone();
+      if (hasContent && isSubscribed) {
+        setIsLoaded(true);
         window.dispatchEvent(new Event('resize'));
-        setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
-        setTimeout(() => window.dispatchEvent(new Event('resize')), 150);
         observer.disconnect();
       }
     });
 
     observer.observe(container, { childList: true, subtree: true });
 
-    // Official TravelPayouts / Aviasales 7879 script
+    // Official TravelPayouts / Aviasales 7879 script (completely unmodified)
     const script = document.createElement('script');
     script.src = `https://tpemd.com/content?currency=usd&trs=429016&shmarker=569298&show_hotels=false&powered_by=false&locale=${locale}&searchUrl=www.aviasales.com%2Fsearch&primary_override=%2332a8dd&color_button=&color_icons=%230D0D0Eff&dark=%23262626&light=%23FFFFFFFf&secondary=%23FFFFFFFf&special=%23C4C4C4&color_focused=%2332a8dd&border_radius=0&no_labels=true&plain=true&promo_id=7879&campaign_id=100`;
     script.async = true;
@@ -41,105 +37,50 @@ export const TravelPayoutsSearchWidget: React.FC = () => {
     script.setAttribute('fetchpriority', 'high');
 
     script.onload = () => {
-      onDone();
-      window.dispatchEvent(new Event('resize'));
-      setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
-      setTimeout(() => window.dispatchEvent(new Event('resize')), 150);
+      if (isSubscribed) {
+        setIsLoaded(true);
+        window.dispatchEvent(new Event('resize'));
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+      }
     };
 
     script.onerror = () => {
-      onDone();
+      if (isSubscribed) {
+        setIsLoaded(true);
+      }
     };
 
     container.appendChild(script);
 
-    // Fast fallback to ensure resizing even on ultra-fast network caches
-    setTimeout(() => {
-      onDone();
-      window.dispatchEvent(new Event('resize'));
-    }, 400);
-  };
-
-  useEffect(() => {
-    // 1. Initialize active language immediately with high priority
-    if (isFr) {
-      if (frContainerRef.current && !frInitializedRef.current) {
-        frInitializedRef.current = true;
-        initWidget(frContainerRef.current, 'fr', () => setFrLoaded(true));
+    // Fast fallback
+    const fallbackTimer = setTimeout(() => {
+      if (isSubscribed) {
+        setIsLoaded(true);
+        window.dispatchEvent(new Event('resize'));
       }
-    } else {
-      if (enContainerRef.current && !enInitializedRef.current) {
-        enInitializedRef.current = true;
-        initWidget(enContainerRef.current, 'en', () => setEnLoaded(true));
-      }
-    }
+    }, 350);
 
-    // 2. Pre-warm alternate language in background after 3.5s of idle time
-    const warmTimer = setTimeout(() => {
-      if (isFr) {
-        if (enContainerRef.current && !enInitializedRef.current) {
-          enInitializedRef.current = true;
-          initWidget(enContainerRef.current, 'en', () => setEnLoaded(true));
-        }
-      } else {
-        if (frContainerRef.current && !frInitializedRef.current) {
-          frInitializedRef.current = true;
-          initWidget(frContainerRef.current, 'fr', () => setFrLoaded(true));
-        }
-      }
-    }, 3500);
-
-    return () => clearTimeout(warmTimer);
-  }, []);
-
-  // When user switches language, ensure widget is ready and correctly sized instantly
-  useEffect(() => {
-    if (isFr) {
-      if (frContainerRef.current && !frInitializedRef.current) {
-        frInitializedRef.current = true;
-        initWidget(frContainerRef.current, 'fr', () => setFrLoaded(true));
-      }
-    } else {
-      if (enContainerRef.current && !enInitializedRef.current) {
-        enInitializedRef.current = true;
-        initWidget(enContainerRef.current, 'en', () => setEnLoaded(true));
-      }
-    }
-
-    window.dispatchEvent(new Event('resize'));
-    const t1 = setTimeout(() => window.dispatchEvent(new Event('resize')), 30);
-    const t2 = setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
     return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
+      isSubscribed = false;
+      clearTimeout(fallbackTimer);
+      observer.disconnect();
     };
-  }, [isFr]);
-
-  const activeLoaded = isFr ? frLoaded : enLoaded;
+  }, [locale]);
 
   return (
     <div 
       id="travelpayouts-search-container" 
-      className="w-full my-2 sm:my-3 relative z-20 select-none overflow-hidden min-h-[68px] sm:min-h-[76px]"
+      className="w-full my-2 sm:my-3 relative z-20 select-none overflow-hidden min-h-[64px] sm:min-h-[72px]"
     >
-      {/* Discreet loading indicator positioned absolutely so it never causes layout shift */}
-      {!activeLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center gap-2 text-white/50 text-xs pointer-events-none z-0">
-          <div className="w-4 h-4 border-2 border-[#32a8dd] border-t-transparent rounded-full animate-spin" />
-          <span>{isFr ? 'Chargement du comparateur de vols...' : 'Loading flight search engine...'}</span>
-        </div>
+      {/* Subtle sleek skeleton placeholder while script attaches, avoiding any jarring layout shift */}
+      {!isLoaded && (
+        <div className="absolute inset-0 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-sm animate-pulse pointer-events-none z-0" />
       )}
 
-      {/* French Widget Container */}
+      {/* Official TravelPayouts container */}
       <div 
-        ref={frContainerRef} 
-        className={isFr ? 'w-full relative opacity-100 z-10 transition-opacity duration-150' : 'w-full absolute -left-[9999px] top-0 opacity-0 pointer-events-none -z-10'}
-      />
-
-      {/* English Widget Container */}
-      <div 
-        ref={enContainerRef} 
-        className={!isFr ? 'w-full relative opacity-100 z-10 transition-opacity duration-150' : 'w-full absolute -left-[9999px] top-0 opacity-0 pointer-events-none -z-10'}
+        ref={containerRef} 
+        className="w-full relative opacity-100 z-10 transition-opacity duration-150"
       />
     </div>
   );

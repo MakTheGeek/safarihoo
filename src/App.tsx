@@ -42,13 +42,13 @@ export default function App() {
   const [showCookiesModal, setShowCookiesModal] = useState(false);
   const heroVideoRef = useRef<HTMLVideoElement>(null);
 
-  // Smoothly trigger hero video playback with a small delay so flight widget loads with 100% network priority
+  // Trigger hero video playback after flight widget has claimed priority bandwidth
   useEffect(() => {
     const videoTimer = setTimeout(() => {
       if (heroVideoRef.current) {
         heroVideoRef.current.play().catch(() => {});
       }
-    }, 400);
+    }, 2200);
     return () => clearTimeout(videoTimer);
   }, []);
 

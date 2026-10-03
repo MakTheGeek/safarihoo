@@ -13,7 +13,7 @@ export const SafarihooLogo: React.FC<SafarihooLogoProps> = ({
   return (
     <div className={`flex flex-col items-start ${showTagline ? 'gap-0.5' : ''}`}>
       <img
-        src="https://res.cloudinary.com/opy809y1/image/upload/v1787692461/Logo.blanc.safarihoo.png"
+        src="https://res.cloudinary.com/opy809y1/image/upload/f_auto,q_auto,w_400/v1787692461/Logo.blanc.safarihoo.png"
         alt="Safarihoo Logo"
         className={`${className} object-contain select-none transition-transform duration-200 group-hover:scale-[1.02]`}
         loading="eager"
