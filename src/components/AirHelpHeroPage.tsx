@@ -1,29 +1,61 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { HeroHeading } from './HeroHeading';
 import { AirHelpWidget } from './AirHelpWidget';
 import { TrustBadges } from './TrustBadges';
 import { useLanguage } from '../context/LanguageContext';
 
 interface AirHelpHeroPageProps {
+  isActive?: boolean;
   onStartJourney?: () => void;
   onViewDestinations?: () => void;
 }
 
 export const AirHelpHeroPage: React.FC<AirHelpHeroPageProps> = ({
+  isActive = true,
   onStartJourney,
   onViewDestinations,
 }) => {
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isActive) {
+      video.muted = true;
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          const resumeOnInteraction = () => {
+            if (videoRef.current) {
+              videoRef.current.play().catch(() => {});
+            }
+            window.removeEventListener('click', resumeOnInteraction);
+            window.removeEventListener('touchstart', resumeOnInteraction);
+            window.removeEventListener('scroll', resumeOnInteraction);
+          };
+          window.addEventListener('click', resumeOnInteraction, { once: true, passive: true });
+          window.addEventListener('touchstart', resumeOnInteraction, { once: true, passive: true });
+          window.addEventListener('scroll', resumeOnInteraction, { once: true, passive: true });
+        });
+      }
+    } else {
+      video.pause();
+    }
+  }, [isActive]);
 
   return (
     <div id="airhelp-page-view" className="w-full flex flex-col items-center relative">
       {/* Cinematic Video Background for AirHelp */}
       <div className="absolute inset-0 w-full h-[760px] md:h-[860px] lg:h-[920px] overflow-hidden pointer-events-none z-0">
         <video
+          ref={videoRef}
+          autoPlay
           loop
           muted
           playsInline
-          preload="none"
+          preload="auto"
           poster="https://res.cloudinary.com/opy809y1/video/upload/so_0,q_auto,f_auto,w_1280/v1787691909/AirHelp.video.jpg"
           className="w-full h-full object-cover object-center opacity-85 scale-[1.02] filter brightness-105 contrast-100"
           aria-hidden="true"
@@ -34,10 +66,6 @@ export const AirHelpHeroPage: React.FC<AirHelpHeroPageProps> = ({
           />
           <source
             src="https://res.cloudinary.com/opy809y1/video/upload/q_auto,w_1280/v1787691909/AirHelp.video.mp4"
-            type="video/mp4"
-          />
-          <source
-            src="https://res.cloudinary.com/opy809y1/video/upload/v1787691909/AirHelp.video.mp4"
             type="video/mp4"
           />
         </video>
@@ -76,4 +104,3 @@ export const AirHelpHeroPage: React.FC<AirHelpHeroPageProps> = ({
     </div>
   );
 };
-

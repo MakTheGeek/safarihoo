@@ -41,15 +41,33 @@ export default function App() {
   const [showCookiesModal, setShowCookiesModal] = useState(false);
   const heroVideoRef = useRef<HTMLVideoElement>(null);
 
-  // Trigger hero video playback after flight widget has claimed priority bandwidth
+  // Manage Flights hero video playback based on activeNav
   useEffect(() => {
-    const videoTimer = setTimeout(() => {
-      if (heroVideoRef.current) {
-        heroVideoRef.current.play().catch(() => {});
+    const video = heroVideoRef.current;
+    if (!video) return;
+
+    if (activeNav === 'Flights') {
+      video.muted = true;
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          const onInteract = () => {
+            if (heroVideoRef.current) {
+              heroVideoRef.current.play().catch(() => {});
+            }
+            window.removeEventListener('click', onInteract);
+            window.removeEventListener('touchstart', onInteract);
+            window.removeEventListener('scroll', onInteract);
+          };
+          window.addEventListener('click', onInteract, { once: true, passive: true });
+          window.addEventListener('touchstart', onInteract, { once: true, passive: true });
+          window.addEventListener('scroll', onInteract, { once: true, passive: true });
+        });
       }
-    }, 2200);
-    return () => clearTimeout(videoTimer);
-  }, []);
+    } else {
+      video.pause();
+    }
+  }, [activeNav]);
 
   // Background idle warm-up of secondary widgets after 3.5s so Flights gets 100% of initial bandwidth
   useEffect(() => {
@@ -106,6 +124,7 @@ export default function App() {
       <div className={activeNav === 'Hotels' ? 'w-full block' : 'hidden'}>
         {(hasVisitedHotels || activeNav === 'Hotels') && (
           <HotelHeroPage
+            isActive={activeNav === 'Hotels'}
             onStartJourney={handleStartJourney}
             onViewDestinations={handleViewDestinations}
           />
@@ -115,6 +134,7 @@ export default function App() {
       <div className={activeNav === 'Cars' ? 'w-full block' : 'hidden'}>
         {(hasVisitedCars || activeNav === 'Cars') && (
           <CarHeroPage
+            isActive={activeNav === 'Cars'}
             onStartJourney={handleStartJourney}
             onViewDestinations={handleViewDestinations}
           />
@@ -124,6 +144,7 @@ export default function App() {
       <div className={activeNav === 'AirHelp' ? 'w-full block' : 'hidden'}>
         {(hasVisitedAirHelp || activeNav === 'AirHelp') && (
           <AirHelpHeroPage
+            isActive={activeNav === 'AirHelp'}
             onStartJourney={handleStartJourney}
             onViewDestinations={handleViewDestinations}
           />
@@ -181,10 +202,11 @@ export default function App() {
         <div className="absolute inset-0 w-full h-[760px] md:h-[860px] lg:h-[920px] overflow-hidden pointer-events-none z-0 bg-neutral-950">
           <video
             ref={heroVideoRef}
+            autoPlay
             loop
             muted
             playsInline
-            preload="none"
+            preload="auto"
             poster="https://res.cloudinary.com/opy809y1/video/upload/so_0,q_auto,f_auto,w_1280/v1787504639/kling_20260824_Image_to_Video_Create_a_p_213_0.jpg"
             className="w-full h-full object-cover object-center opacity-85 scale-[1.02] filter brightness-105 contrast-100"
             aria-hidden="true"
