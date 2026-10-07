@@ -1,0 +1,6 @@
+# Robots.txt for Safarihoo (https://safarihoo.com)
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://safarihoo.com/sitemap.xml
