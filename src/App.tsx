@@ -206,7 +206,7 @@ export default function App() {
             loop
             muted
             playsInline
-            preload="auto"
+            preload="metadata"
             poster="https://res.cloudinary.com/opy809y1/video/upload/so_0,q_auto,f_auto,w_1280/v1787504639/kling_20260824_Image_to_Video_Create_a_p_213_0.jpg"
             className="w-full h-full object-cover object-center opacity-85 scale-[1.02] filter brightness-105 contrast-100"
             aria-hidden="true"
