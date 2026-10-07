@@ -31,11 +31,35 @@
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "Safarihoo",
-      "alternateName": "Safarihoo Travel",
-      "url": "https://www.safarihoo.com/",
-      "description": "Travel and flight booking platform with AI travel planner and interactive hero section."
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://www.safarihoo.com/#website",
+          "url": "https://www.safarihoo.com/",
+          "name": "Safarihoo",
+          "alternateName": "Safarihoo Travel",
+          "description": "Plateforme et comparateur de réservation de vols, hôtels et location de voitures au meilleur prix.",
+          "inLanguage": ["fr", "en"],
+          "publisher": {
+            "@type": "Organization",
+            "name": "Safarihoo",
+            "url": "https://www.safarihoo.com/",
+            "logo": "https://res.cloudinary.com/opy809y1/image/upload/f_auto,q_auto,w_400/v1787692461/Logo.blanc.safarihoo.png"
+          }
+        },
+        {
+          "@type": "WebApplication",
+          "name": "Safarihoo Flight Search & Booking",
+          "url": "https://www.safarihoo.com/",
+          "applicationCategory": "TravelApplication",
+          "operatingSystem": "All",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          }
+        }
+      ]
     }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -124,7 +148,121 @@
     </script>
   </head>
   <body class="bg-black text-white antialiased selection:bg-blue-600 selection:text-white overflow-x-hidden min-h-screen">
-    <div id="root"></div>
+    <div id="root">
+      <!-- Crawlable Semantic SEO Content for Search Engines & Robots (Googlebot, Bingbot, etc.) -->
+      <header style="max-width: 1200px; margin: 0 auto; padding: 24px 16px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img src="https://res.cloudinary.com/opy809y1/image/upload/f_auto,q_auto,w_400/v1787692461/Logo.blanc.safarihoo.png" alt="Safarihoo" width="160" height="42" style="height: 38px; width: auto;" />
+        </div>
+        <nav aria-label="Navigation principale" style="display: flex; gap: 20px; font-size: 14px;">
+          <a href="/#vols" style="color: #cbd5e1; text-decoration: none;">Vols</a>
+          <a href="/#hotels" style="color: #cbd5e1; text-decoration: none;">Hôtels</a>
+          <a href="/#voitures" style="color: #cbd5e1; text-decoration: none;">Voitures</a>
+          <a href="/#airhelp" style="color: #cbd5e1; text-decoration: none;">AirHelp</a>
+          <a href="/#faq" style="color: #cbd5e1; text-decoration: none;">FAQ</a>
+        </nav>
+      </header>
+
+      <main style="max-width: 1200px; margin: 0 auto; padding: 40px 16px;">
+        <section style="text-align: center; margin-bottom: 48px;">
+          <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 16px; color: #ffffff;">
+            Safarihoo – Comparateur et Réservation de Vols, Hôtels & Voitures
+          </h1>
+          <p style="font-size: 18px; color: #94a3b8; max-width: 800px; margin: 0 auto; line-height: 1.6;">
+            Trouvez les billets d'avion les moins chers parmi des centaines de compagnies aériennes mondiales. Réservez vos vols au meilleur tarif garanti, vos hôtels de rêve, votre location de voiture et obtenez une indemnisation jusqu'à 600 € pour vos vols retardés ou annulés avec AirHelp.
+          </p>
+        </section>
+
+        <section id="services" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: 48px;">
+          <article style="background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px;">
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #ffffff;">✈️ Vols pas chers</h2>
+            <p style="font-size: 14px; color: #a1a1aa; line-height: 1.5;">
+              Comparez les tarifs de plus de 700 compagnies aériennes (Air France, Emirates, Qatar Airways, Ryanair, easyJet, etc.) et agences de voyage en temps réel pour voyager au prix le plus bas.
+            </p>
+          </article>
+          <article style="background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px;">
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #ffffff;">🏨 Hôtels & Séjours</h2>
+            <p style="font-size: 14px; color: #a1a1aa; line-height: 1.5;">
+              Des millions d'établissements partout dans le monde : hôtels de luxe, resorts, appartements et auberges aux meilleurs prix avec notre partenaire officiel Trip.com.
+            </p>
+          </article>
+          <article style="background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px;">
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #ffffff;">🚗 Location de Voitures</h2>
+            <p style="font-size: 14px; color: #a1a1aa; line-height: 1.5;">
+              Louez votre véhicule facilement dans les aéroports et centres-villes avec les plus grands loueurs internationaux (Hertz, Avis, Sixt, Europcar) aux meilleurs tarifs négociés.
+            </p>
+          </article>
+          <article style="background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px;">
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #ffffff;">🛡️ Indemnisation AirHelp</h2>
+            <p style="font-size: 14px; color: #a1a1aa; line-height: 1.5;">
+              Vol retardé, annulé ou surbooké ? Réclamez jusqu'à 600 € d'indemnisation légale en quelques minutes sans aucun frais initial grâce à notre partenariat AirHelp.
+            </p>
+          </article>
+        </section>
+
+        <section id="destinations" style="margin-bottom: 48px;">
+          <h2 style="font-size: 24px; font-weight: 700; color: #ffffff; margin-bottom: 20px;">Destinations Populaires pour Voyager</h2>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+            <div style="background: rgba(24,24,27,0.7); border: 1px solid rgba(255,255,255,0.06); padding: 16px; border-radius: 12px;">
+              <h3 style="font-size: 16px; font-weight: 600; color: #ffffff;">Paris, France</h3>
+              <p style="font-size: 12px; color: #71717a;">Vols vers Paris-CDG / Orly</p>
+            </div>
+            <div style="background: rgba(24,24,27,0.7); border: 1px solid rgba(255,255,255,0.06); padding: 16px; border-radius: 12px;">
+              <h3 style="font-size: 16px; font-weight: 600; color: #ffffff;">New York, États-Unis</h3>
+              <p style="font-size: 12px; color: #71717a;">Vols vers JFK / EWR</p>
+            </div>
+            <div style="background: rgba(24,24,27,0.7); border: 1px solid rgba(255,255,255,0.06); padding: 16px; border-radius: 12px;">
+              <h3 style="font-size: 16px; font-weight: 600; color: #ffffff;">Tokyo, Japon</h3>
+              <p style="font-size: 12px; color: #71717a;">Vols vers Haneda / Narita</p>
+            </div>
+            <div style="background: rgba(24,24,27,0.7); border: 1px solid rgba(255,255,255,0.06); padding: 16px; border-radius: 12px;">
+              <h3 style="font-size: 16px; font-weight: 600; color: #ffffff;">Dubaï, Émirats Arabes Unis</h3>
+              <p style="font-size: 12px; color: #71717a;">Vols vers DXB</p>
+            </div>
+            <div style="background: rgba(24,24,27,0.7); border: 1px solid rgba(255,255,255,0.06); padding: 16px; border-radius: 12px;">
+              <h3 style="font-size: 16px; font-weight: 600; color: #ffffff;">Rome, Italie</h3>
+              <p style="font-size: 12px; color: #71717a;">Vols vers Fiumicino</p>
+            </div>
+            <div style="background: rgba(24,24,27,0.7); border: 1px solid rgba(255,255,255,0.06); padding: 16px; border-radius: 12px;">
+              <h3 style="font-size: 16px; font-weight: 600; color: #ffffff;">Bali, Indonésie</h3>
+              <p style="font-size: 12px; color: #71717a;">Vols vers Denpasar</p>
+            </div>
+            <div style="background: rgba(24,24,27,0.7); border: 1px solid rgba(255,255,255,0.06); padding: 16px; border-radius: 12px;">
+              <h3 style="font-size: 16px; font-weight: 600; color: #ffffff;">Marrakech, Maroc</h3>
+              <p style="font-size: 12px; color: #71717a;">Vols vers Menara</p>
+            </div>
+            <div style="background: rgba(24,24,27,0.7); border: 1px solid rgba(255,255,255,0.06); padding: 16px; border-radius: 12px;">
+              <h3 style="font-size: 16px; font-weight: 600; color: #ffffff;">Londres, Royaume-Uni</h3>
+              <p style="font-size: 12px; color: #71717a;">Vols vers Heathrow / Gatwick</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="faq" style="background: rgba(24,24,27,0.5); border: 1px solid rgba(255,255,255,0.08); padding: 32px; border-radius: 16px; margin-bottom: 48px;">
+          <h2 style="font-size: 24px; font-weight: 700; color: #ffffff; margin-bottom: 20px;">Foire Aux Questions (FAQ)</h2>
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div>
+              <h3 style="font-size: 16px; font-weight: 600; color: #ffffff;">Comment Safarihoo trouve-t-il les meilleurs prix ?</h3>
+              <p style="font-size: 14px; color: #94a3b8; margin-top: 4px; line-height: 1.5;">Safarihoo compare simultanément des centaines de voyagistes et compagnies aériennes pour repérer le meilleur tarif en direct sans commission cachée.</p>
+            </div>
+            <div>
+              <h3 style="font-size: 16px; font-weight: 600; color: #ffffff;">Comment fonctionne l'indemnisation de vol AirHelp sur Safarihoo ?</h3>
+              <p style="font-size: 14px; color: #94a3b8; margin-top: 4px; line-height: 1.5;">Si votre vol a subi plus de 3 heures de retard ou a été annulé, vous pouvez réclamer jusqu'à 600 € d'indemnisation selon la réglementation européenne CE 261/2004.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer style="max-width: 1200px; margin: 0 auto; padding: 24px 16px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; color: #71717a; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <p>© 2026 Safarihoo (safarihoo.com). Tous droits réservés.</p>
+        <p>Partenaires officiels : Aviasales, TravelPayouts, Trip.com, AirHelp.</p>
+      </footer>
+    </div>
+    <noscript>
+      <div style="background: #111; color: #eee; padding: 20px; text-align: center;">
+        <p>Safarihoo - Plateforme et comparateur de vols, hôtels et location de voitures. Activez JavaScript pour une expérience interactive complète.</p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
