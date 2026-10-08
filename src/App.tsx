@@ -12,6 +12,7 @@ import { CarHeroPage } from './components/CarHeroPage';
 import { AirHelpHeroPage } from './components/AirHelpHeroPage';
 import { NavItem } from './types';
 import { useLanguage } from './context/LanguageContext';
+import { SafarihooChatbot } from './components/SafarihooChatbot';
 
 // Code-split secondary views, modals, and chat assistant for instant initial page loading
 const ContactPage = lazy(() => import('./components/ContactPage').then(m => ({ default: m.ContactPage })));
@@ -300,6 +301,12 @@ export default function App() {
           />
         )}
       </Suspense>
+
+      {/* 24/7 Virtual AI Assistant Safarihoo */}
+      <SafarihooChatbot 
+        onNavigate={handleNavSelect}
+        onStartJourney={handleStartJourney}
+      />
     </div>
   );
 }
