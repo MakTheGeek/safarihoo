@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1120" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#32a8dd" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+    <linearGradient id="wingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#bae6fd" />
+    </linearGradient>
+  </defs>
+
+  <!-- Deep Obsidian Rounded Card Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  <rect width="506" height="506" x="3" y="3" rx="109" fill="none" stroke="#38bdf8" stroke-width="6" stroke-opacity="0.35" />
+
+  <!-- Iconic Safarihoo "S" + Aerodynamic Flight Sweep -->
+  <g id="safarihoo-icon">
+    <!-- Top Arc / Flight Sweep -->
+    <path d="M 360 162 C 340 120 286 96 226 104 C 158 113 118 160 122 218 C 126 270 176 294 242 312 C 314 332 358 358 354 410 C 348 468 288 488 220 484 C 160 480 120 448 104 416"
+          fill="none"
+          stroke="url(#cyanGrad)"
+          stroke-width="56"
+          stroke-linecap="round"
+          stroke-linejoin="round" />
+
+    <!-- Soaring Jet / Supersonic Flight Arrow in White -->
+    <path d="M 330 180 L 416 120 L 372 216 L 342 206 L 320 236 L 308 224 L 324 196 Z"
+          fill="url(#wingGrad)" />
+
+    <!-- Glow Accent Star -->
+    <polygon points="432,96 438,114 456,120 438,126 432,144 426,126 408,120 426,114" fill="#38bdf8" />
+  </g>
+</svg>
