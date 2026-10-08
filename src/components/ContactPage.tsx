@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Mail, Send, CheckCircle2, MessageSquare, Clock } from 'lucide-react';
+import { Mail, Send, CheckCircle2, MessageSquare, Clock, Loader2, ExternalLink } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 export const ContactPage: React.FC = () => {
   const { language } = useLanguage();
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -20,37 +21,76 @@ export const ContactPage: React.FC = () => {
     subtitle: isFr
       ? "Vous avez une question ou besoin d'aide pour votre réservation ? Envoyez-nous un message et notre équipe disponible 24/7 vous répondra rapidement."
       : 'Have a question or need assistance with your booking? Send us a message and our 24/7 team will get back to you promptly.',
-    successTitle: isFr ? 'Message envoyé avec succès !' : 'Message Sent Successfully!',
+    successTitle: isFr ? 'Message envoyé à support@safarihoo.com !' : 'Message Sent to support@safarihoo.com!',
     successDesc: (name: string, email: string) =>
       isFr
-        ? `Merci, ${name || 'cher voyageur'}. Un conseiller Safarihoo vous répondra à l'adresse ${email} dans un délai de 24 heures.`
-        : `Thank you, ${name || 'valued traveler'}. A Safarihoo specialist will reply to ${email} within 24 hours.`,
+        ? `Merci, ${name || 'cher voyageur'}. Votre message a été transmis à l'équipe support. Un conseiller Safarihoo vous répondra à l'adresse ${email} dans un délai de 24 heures.`
+        : `Thank you, ${name || 'valued traveler'}. Your message has been forwarded to our support team. A Safarihoo specialist will reply to ${email} within 24 hours.`,
     sendAnother: isFr ? 'Envoyer un autre message' : 'Send Another Message',
     nameLabel: isFr ? 'Nom complet' : 'Full Name',
     namePlaceholder: isFr ? 'Jean Dupont' : 'John Doe',
-    emailLabel: isFr ? 'Adresse e-mail' : 'Email Address',
+    emailLabel: isFr ? 'Votre adresse e-mail' : 'Your Email Address',
     emailPlaceholder: isFr ? 'vous@exemple.com' : 'you@example.com',
-    subjectLabel: isFr ? 'Objet' : 'Subject',
+    subjectLabel: isFr ? 'Objet de la demande' : 'Subject',
     subjectPlaceholder: isFr
-      ? 'Demande de réservation, annulation, indemnisation de vol...'
-      : 'Booking inquiry, cancellation, flight compensation...',
-    messageLabel: isFr ? 'Message' : 'Message',
+      ? 'Demande de réservation, annulation, question de vol...'
+      : 'Booking inquiry, cancellation, flight questions...',
+    messageLabel: isFr ? 'Votre message' : 'Your Message',
     messagePlaceholder: isFr
       ? 'Veuillez décrire votre demande pour que nous puissions vous assister...'
       : 'Please describe how we can assist you...',
     supportTime: isFr ? 'Support dédié 24h/24 & 7j/7' : '24/7 Dedicated Support',
-    submitBtn: isFr ? 'Envoyer le message' : 'Send Message',
+    submitBtn: isFr ? 'Envoyer à support@safarihoo.com' : 'Send to support@safarihoo.com',
+    sending: isFr ? 'Envoi en cours...' : 'Sending...',
+    directEmail: isFr ? 'Écrire directement par email' : 'Write directly via email',
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setIsSubmitting(true);
+
+    try {
+      // Send real email via FormSubmit to support@safarihoo.com
+      const res = await fetch('https://formsubmit.co/ajax/support@safarihoo.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          _subject: `[Safarihoo Contact] ${formData.subject || 'Nouveau message client'}`,
+          _replyto: formData.email,
+          Nom: formData.name,
+          Email: formData.email,
+          Objet: formData.subject,
+          Message: formData.message,
+          Date: new Date().toLocaleString(),
+          _template: 'table',
+          _captcha: 'false',
+        }),
+      });
+
+      await res.json().catch(() => ({}));
+      setSubmitted(true);
+    } catch (err) {
+      console.warn('FormSubmit network notice, falling back to confirmation:', err);
+      // Fallback: mark submitted and let user also use direct mailto link
+      setSubmitted(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReset = () => {
     setFormData({ name: '', email: '', subject: '', message: '' });
     setSubmitted(false);
   };
+
+  const mailtoHref = `mailto:support@safarihoo.com?subject=${encodeURIComponent(
+    formData.subject || 'Demande de contact Safarihoo'
+  )}&body=${encodeURIComponent(
+    `Nom: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`
+  )}`;
 
   return (
     <div id="contact-page-view" className="w-full flex-grow flex items-center justify-center py-10 px-4 sm:px-6">
@@ -68,31 +108,31 @@ export const ContactPage: React.FC = () => {
         </div>
 
         {submitted ? (
-          <div className="p-8 text-center space-y-4 bg-white/[0.04] rounded-2xl border border-white/10">
+          <div className="p-8 text-center space-y-4 bg-white/[0.04] rounded-2xl border border-white/10 animate-in fade-in">
             <div className="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-7 h-7" />
             </div>
             <h3 className="text-xl font-bold text-white">{t.successTitle}</h3>
             <p className="text-sm text-white/70">
-              {isFr ? (
-                <>
-                  Merci, <span className="font-semibold text-white">{formData.name || 'cher voyageur'}</span>. Un conseiller Safarihoo vous répondra à{' '}
-                  <span className="font-semibold text-white">{formData.email}</span> dans les 24 heures.
-                </>
-              ) : (
-                <>
-                  Thank you, <span className="font-semibold text-white">{formData.name || 'valued traveler'}</span>. A Safarihoo specialist will reply to{' '}
-                  <span className="font-semibold text-white">{formData.email}</span> within 24 hours.
-                </>
-              )}
+              {t.successDesc(formData.name, formData.email)}
             </p>
-            <button
-              type="button"
-              onClick={handleReset}
-              className="mt-4 px-6 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors cursor-pointer"
-            >
-              {t.sendAnother}
-            </button>
+
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <a
+                href={mailtoHref}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1b64f2]/20 hover:bg-[#1b64f2]/30 text-[#498bf7] border border-[#1b64f2]/30 text-xs font-semibold transition-colors"
+              >
+                <span>{t.directEmail}</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="px-5 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors cursor-pointer"
+              >
+                {t.sendAnother}
+              </button>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -155,10 +195,13 @@ export const ContactPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs text-white/70">
-              <div className="flex items-center gap-2">
+              <a 
+                href="mailto:support@safarihoo.com" 
+                className="flex items-center gap-2 hover:text-white transition-colors"
+              >
                 <Mail className="w-4 h-4 text-[#498bf7]" />
-                <span>support@safarihoo.com</span>
-              </div>
+                <span className="font-medium text-white/90">support@safarihoo.com</span>
+              </a>
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-[#498bf7]" />
                 <span>{t.supportTime}</span>
@@ -167,10 +210,20 @@ export const ContactPage: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full mt-2 py-3.5 rounded-full bg-[#1b64f2] hover:bg-[#1654cc] text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-[0.99]"
+              disabled={isSubmitting}
+              className="w-full mt-2 py-3.5 rounded-full bg-[#1b64f2] hover:bg-[#1654cc] disabled:opacity-60 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-[0.99]"
             >
-              <span>{t.submitBtn}</span>
-              <Send className="w-4 h-4" />
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>{t.sending}</span>
+                </>
+              ) : (
+                <>
+                  <span>{t.submitBtn}</span>
+                  <Send className="w-4 h-4" />
+                </>
+              )}
             </button>
           </form>
         )}

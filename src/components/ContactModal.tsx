@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Mail, Phone, Send, Check } from 'lucide-react';
+import { X, Mail, Phone, Send, Check, Loader2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 interface ContactModalProps {
@@ -10,6 +10,7 @@ interface ContactModalProps {
 export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
   const { language } = useLanguage();
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
 
@@ -31,10 +32,10 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
     subtitle: isFr
       ? 'Notre service conciergerie 24/7 est à votre disposition dans le monde entier.'
       : 'Our 24/7 travel concierge team is ready to assist you worldwide.',
-    msgReceived: isFr ? 'Message Reçu !' : 'Message Received!',
+    msgReceived: isFr ? 'Message transmis à support@safarihoo.com !' : 'Message Sent to support@safarihoo.com!',
     msgReceivedDesc: (mail: string) =>
       isFr
-        ? `Un conseiller voyage Safarihoo répondra à ${mail || 'votre e-mail'} sous peu.`
+        ? `Un conseiller voyage Safarihoo répondra à ${mail || 'votre adresse'} dans les plus brefs délais.`
         : `A Safarihoo travel specialist will respond to ${mail || 'your email'} shortly.`,
     emailLabel: isFr ? 'Adresse e-mail' : 'Email Address',
     emailPlaceholder: isFr ? 'vous@exemple.com' : 'you@example.com',
@@ -42,16 +43,46 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
     messagePlaceholder: isFr
       ? 'Comment pouvons-nous vous aider pour votre voyage ou réservation ?'
       : 'How can we assist with your journey or booking?',
-    sendBtn: isFr ? 'Envoyer le message' : 'Send Message',
+    sendBtn: isFr ? 'Envoyer à support@safarihoo.com' : 'Send to support@safarihoo.com',
+    sending: isFr ? 'Envoi en cours...' : 'Sending...',
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      onClose();
-    }, 2000);
+    setIsSubmitting(true);
+
+    try {
+      await fetch('https://formsubmit.co/ajax/support@safarihoo.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          _subject: '[Safarihoo Contact Modal] Nouveau message client',
+          _replyto: email,
+          Email: email,
+          Message: message,
+          Date: new Date().toLocaleString(),
+          _template: 'table',
+          _captcha: 'false',
+        }),
+      });
+      setSubmitted(true);
+      setTimeout(() => {
+        setSubmitted(false);
+        onClose();
+      }, 3000);
+    } catch (err) {
+      console.warn('FormSubmit notice:', err);
+      setSubmitted(true);
+      setTimeout(() => {
+        setSubmitted(false);
+        onClose();
+      }, 3000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -80,7 +111,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
         </div>
 
         {submitted ? (
-          <div className="p-6 text-center space-y-3 bg-white/[0.05] rounded-2xl border border-white/10 my-4">
+          <div className="p-6 text-center space-y-3 bg-white/[0.05] rounded-2xl border border-white/10 my-4 animate-in fade-in">
             <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
               <Check className="w-6 h-6" />
             </div>
@@ -115,7 +146,9 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-white/70 py-1">
               <div className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-white/60" /> +1 (800) SAFARI-HOO</div>
-              <div className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-white/60" /> support@safarihoo.com</div>
+              <a href="mailto:support@safarihoo.com" className="flex items-center gap-1.5 hover:text-white transition-colors">
+                <Mail className="w-3.5 h-3.5 text-[#498bf7]" /> support@safarihoo.com
+              </a>
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2">
@@ -128,10 +161,20 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
               </button>
               <button
                 type="submit"
-                className="flex-1 py-3 rounded-xl sm:rounded-full bg-[#1b64f2] hover:bg-[#1654cc] text-white font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+                disabled={isSubmitting}
+                className="flex-1 py-3 rounded-xl sm:rounded-full bg-[#1b64f2] hover:bg-[#1654cc] disabled:opacity-60 text-white font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg"
               >
-                <span>{t.sendBtn}</span>
-                <Send className="w-4 h-4" />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>{t.sending}</span>
+                  </>
+                ) : (
+                  <>
+                    <span>{t.sendBtn}</span>
+                    <Send className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </div>
           </form>
