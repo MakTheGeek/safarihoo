@@ -44,6 +44,19 @@
           "value": "public, max-age=3600"
         }
       ]
+    },
+    {
+      "source": "/sitemap.xsl",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/xsl; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
     }
   ],
   "rewrites": [
@@ -54,6 +67,10 @@
     {
       "source": "/sitemap.xml",
       "destination": "/sitemap.xml"
+    },
+    {
+      "source": "/sitemap.xsl",
+      "destination": "/sitemap.xsl"
     },
     {
       "source": "/googleb43360d085deb55b.html",
