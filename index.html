@@ -51,23 +51,68 @@
           "description": "Plateforme et comparateur de réservation de vols, hôtels et location de voitures au meilleur prix.",
           "inLanguage": ["fr", "en"],
           "publisher": {
-            "@type": "Organization",
-            "name": "Safarihoo",
-            "url": "https://www.safarihoo.com/",
-            "logo": "https://res.cloudinary.com/opy809y1/image/upload/f_auto,q_auto,w_400/v1787692461/Logo.blanc.safarihoo.png"
+            "@id": "https://www.safarihoo.com/#organization"
           }
         },
         {
+          "@type": ["Organization", "TravelAgency"],
+          "@id": "https://www.safarihoo.com/#organization",
+          "name": "Safarihoo",
+          "url": "https://www.safarihoo.com/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://www.safarihoo.com/favicon-512x512.png",
+            "width": 512,
+            "height": 512
+          },
+          "image": "https://www.safarihoo.com/favicon-512x512.png",
+          "email": "support@safarihoo.com",
+          "sameAs": [
+            "https://www.safarihoo.com"
+          ]
+        },
+        {
           "@type": "WebApplication",
-          "name": "Safarihoo Flight Search & Booking",
+          "@id": "https://www.safarihoo.com/#webapp",
+          "name": "Safarihoo - Réservation de Vols, Hôtels & Voitures",
           "url": "https://www.safarihoo.com/",
           "applicationCategory": "TravelApplication",
           "operatingSystem": "All",
+          "description": "Plateforme et comparateur de réservation de vols, hôtels et location de voitures au meilleur prix garanti.",
           "offers": {
             "@type": "Offer",
             "price": "0",
-            "priceCurrency": "USD"
+            "priceCurrency": "EUR"
+          },
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "reviewCount": "120000",
+            "bestRating": "5",
+            "worstRating": "1"
           }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://www.safarihoo.com/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Comment Safarihoo trouve-t-il les meilleurs prix ?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Safarihoo compare simultanément des centaines de voyagistes et compagnies aériennes pour repérer le meilleur tarif en direct sans commission cachée."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Comment fonctionne l'indemnisation de vol AirHelp sur Safarihoo ?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Si votre vol a subi plus de 3 heures de retard ou a été annulé, vous pouvez réclamer jusqu'à 600 € d'indemnisation selon la réglementation européenne CE 261/2004."
+              }
+            }
+          ]
         }
       ]
     }
