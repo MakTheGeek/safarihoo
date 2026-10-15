@@ -1,0 +1,3 @@
+# Google AdSense ads.txt for Safarihoo (safarihoo.com)
+# Une fois votre compte AdSense validé, remplacez cette ligne par votre identifiant éditeur :
+# google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0

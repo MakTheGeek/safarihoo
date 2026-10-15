@@ -49,6 +49,10 @@ export const PrivacyPage: React.FC = () => {
     sec5Contact: isFr
       ? 'Pour exercer vos droits, contactez notre Délégué à la Protection des Données à l’adresse '
       : 'To exercise your rights, please reach our Data Protection Officer at ',
+    sec6Title: isFr ? '6. Publicités & Cookies Publicitaires (Google AdSense)' : '6. Advertising & Cookies Policy (Google AdSense)',
+    sec6Text: isFr
+      ? 'Des fournisseurs tiers, y compris Google, utilisent des cookies pour diffuser des annonces pertinentes sur notre site web en fonction des visites antérieures des internautes sur Safarihoo ou d\'autres sites. L\'utilisation de cookies publicitaires par Google permet à celui-ci et à ses partenaires de diffuser des annonces ciblées. Vous pouvez choisir de désactiver la publicité personnalisée à tout moment via les paramètres des annonces Google (https://www.google.com/settings/ads) ou via le portail www.aboutads.info.'
+      : 'Third-party vendors, including Google, use cookies to serve ads based on a user\'s prior visits to our website or other websites. Google\'s use of advertising cookies enables it and its partners to serve ads to your users based on their visit to your sites and/or other sites on the Internet. Users may opt out of personalized advertising by visiting Google Ads Settings (https://www.google.com/settings/ads) or through www.aboutads.info.',
   };
 
   return (
@@ -120,6 +124,13 @@ export const PrivacyPage: React.FC = () => {
             <a href="mailto:privacy@safarihoo.com" className="text-[#498bf7] hover:underline">
               privacy@safarihoo.com
             </a>.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-lg sm:text-xl font-bold text-white mb-3">{t.sec6Title}</h2>
+          <p className="text-white/70">
+            {t.sec6Text}
           </p>
         </section>
       </div>

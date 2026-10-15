@@ -85,6 +85,10 @@
       "destination": "/googleb43360d085deb55b.html"
     },
     {
+      "source": "/ads.txt",
+      "destination": "/ads.txt"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
