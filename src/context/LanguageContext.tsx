@@ -212,13 +212,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       const saved = localStorage.getItem('safarihoo_lang');
       if (saved === 'FR' || saved === 'EN') return saved as Language;
-      if (typeof navigator !== 'undefined' && navigator.language && navigator.language.toLowerCase().startsWith('fr')) {
-        return 'FR';
-      }
     } catch {
       // Ignore storage errors
     }
-    return 'FR';
+    return 'EN';
   });
 
   const setLanguage = (lang: Language) => {
