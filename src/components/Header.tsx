@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, X, ChevronDown, Check } from 'lucide-react';
+import { Menu, X, ChevronDown, Check, Globe } from 'lucide-react';
 import { NavItem } from '../types';
 import { SafarihooLogo } from './SafarihooLogo';
 import { useLanguage, Language } from '../context/LanguageContext';
@@ -88,15 +88,28 @@ export const Header: React.FC<HeaderProps> = ({
           );
         })}
 
-        {/* 1-Click Fast Language Toggle (FR | EN) */}
+        {/* 1-Click Fast Language Toggle (EN | FR) */}
         <div 
           id="language-switcher-pill"
-          className="flex items-center p-0.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md shadow-sm"
+          className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md shadow-sm"
         >
+          <Globe className="w-3.5 h-3.5 text-white/70 ml-0.5" aria-hidden="true" />
+          <button
+            type="button"
+            onClick={() => setLanguage('EN')}
+            className={`px-2 py-0.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              language === 'EN'
+                ? 'bg-white text-zinc-950 shadow-sm scale-100'
+                : 'text-white/70 hover:text-white'
+            }`}
+            title="Switch to English (Default)"
+          >
+            EN
+          </button>
           <button
             type="button"
             onClick={() => setLanguage('FR')}
-            className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+            className={`px-2 py-0.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
               language === 'FR'
                 ? 'bg-white text-zinc-950 shadow-sm scale-100'
                 : 'text-white/70 hover:text-white'
@@ -105,46 +118,35 @@ export const Header: React.FC<HeaderProps> = ({
           >
             FR
           </button>
-          <button
-            type="button"
-            onClick={() => setLanguage('EN')}
-            className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
-              language === 'EN'
-                ? 'bg-white text-zinc-950 shadow-sm scale-100'
-                : 'text-white/70 hover:text-white'
-            }`}
-            title="Switch to English"
-          >
-            EN
-          </button>
         </div>
       </nav>
 
       {/* Mobile Header Controls */}
       <div className="md:hidden flex items-center gap-2.5">
         {/* Mobile 1-Click Toggle */}
-        <div className="flex items-center p-0.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md">
-          <button
-            type="button"
-            onClick={() => setLanguage('FR')}
-            className={`px-2 py-0.5 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
-              language === 'FR'
-                ? 'bg-white text-zinc-950 shadow-sm'
-                : 'text-white/70 hover:text-white'
-            }`}
-          >
-            FR
-          </button>
+        <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md">
+          <Globe className="w-3 h-3 text-white/70 ml-0.5" aria-hidden="true" />
           <button
             type="button"
             onClick={() => setLanguage('EN')}
-            className={`px-2 py-0.5 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
+            className={`px-1.5 py-0.5 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
               language === 'EN'
                 ? 'bg-white text-zinc-950 shadow-sm'
                 : 'text-white/70 hover:text-white'
             }`}
           >
             EN
+          </button>
+          <button
+            type="button"
+            onClick={() => setLanguage('FR')}
+            className={`px-1.5 py-0.5 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
+              language === 'FR'
+                ? 'bg-white text-zinc-950 shadow-sm'
+                : 'text-white/70 hover:text-white'
+            }`}
+          >
+            FR
           </button>
         </div>
 

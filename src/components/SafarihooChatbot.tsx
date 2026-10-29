@@ -47,20 +47,23 @@ export const SafarihooChatbot: React.FC<SafarihooChatbotProps> = ({
     : "Hello and welcome to Safarihoo! ✈️ I am the Safarihoo Assistant, your personal travel concierge.\n\nI am available 24/7 to help you discover the lowest flight fares, book luxury hotels with Trip.com, rent vehicles, or claim up to €600 compensation with AirHelp.\n\nHow can I assist you today?";
 
   useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([
-        {
-          id: 'welcome',
-          role: 'assistant',
-          content: initialGreeting,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          followUps: isFr
-            ? ["✈️ Comment trouver des vols pas chers ?", "🏨 Hôtels avec Trip.com", "🛡️ Indemnisation AirHelp jusqu'à 600€", "🌍 Idées de voyage"]
-            : ["✈️ How to find cheap flights?", "🏨 Hotels with Trip.com", "🛡️ AirHelp up to €600 compensation", "🌍 Travel ideas"],
-        },
-      ]);
-    }
-  }, [isFr]);
+    setMessages((prev) => {
+      if (prev.length === 0 || (prev.length === 1 && prev[0].id === 'welcome')) {
+        return [
+          {
+            id: 'welcome',
+            role: 'assistant',
+            content: initialGreeting,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            followUps: isFr
+              ? ["✈️ Comment trouver des vols pas chers ?", "🏨 Hôtels avec Trip.com", "🛡️ Indemnisation AirHelp jusqu'à 600€", "🌍 Idées de voyage"]
+              : ["✈️ How to find cheap flights?", "🏨 Hotels with Trip.com", "🛡️ AirHelp up to €600 compensation", "🌍 Travel ideas"],
+          },
+        ];
+      }
+      return prev;
+    });
+  }, [isFr, initialGreeting]);
 
   useEffect(() => {
     if (isOpen) {

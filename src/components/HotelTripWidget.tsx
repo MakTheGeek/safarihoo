@@ -7,12 +7,14 @@ export const HotelTripWidget: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const { language } = useLanguage();
   const isFr = language === 'FR';
+  const langParam = isFr ? 'fr' : 'www';
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container || initializedRef.current) return;
+    if (!container) return;
 
-    initializedRef.current = true;
+    setIsLoaded(false);
+    container.innerHTML = '';
 
     // Create wrapper for the hotel widget
     const widgetDiv = document.createElement('div');
@@ -22,8 +24,7 @@ export const HotelTripWidget: React.FC = () => {
 
     const script = document.createElement('script');
     script.async = true;
-    script.src =
-      'https://tpemd.com/content?trs=429016&shmarker=569298&lang=www&layout=S10391&powered_by=true&campaign_id=121&promo_id=4038';
+    script.src = `https://tpemd.com/content?trs=429016&shmarker=569298&lang=${langParam}&layout=S10391&powered_by=true&campaign_id=121&promo_id=4038`;
     script.charset = 'utf-8';
 
     script.onload = () => {
@@ -43,12 +44,12 @@ export const HotelTripWidget: React.FC = () => {
     const fallbackTimer = setTimeout(() => {
       setIsLoaded(true);
       window.dispatchEvent(new Event('resize'));
-    }, 1000);
+    }, 1200);
 
     return () => {
       clearTimeout(fallbackTimer);
     };
-  }, []);
+  }, [langParam]);
 
   return (
     <div className="w-full max-w-6xl mx-auto px-2 sm:px-4 my-3 relative z-20">

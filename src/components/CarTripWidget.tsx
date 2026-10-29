@@ -2,19 +2,17 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
 export const CarTripWidget: React.FC = () => {
-  const frContainerRef = useRef<HTMLDivElement>(null);
-  const enContainerRef = useRef<HTMLDivElement>(null);
-
-  const frInitializedRef = useRef(false);
-  const enInitializedRef = useRef(false);
-
-  const [frLoaded, setFrLoaded] = useState(false);
-  const [enLoaded, setEnLoaded] = useState(false);
-
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
   const { language } = useLanguage();
   const isFr = language === 'FR';
+  const locale = isFr ? 'fr' : 'en';
 
-  const initWidget = (container: HTMLDivElement, locale: 'fr' | 'en', onDone: () => void) => {
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    setIsLoaded(false);
     container.innerHTML = '';
 
     const widgetDiv = document.createElement('div');
@@ -29,75 +27,24 @@ export const CarTripWidget: React.FC = () => {
     script.setAttribute('fetchpriority', 'high');
 
     script.onload = () => {
-      onDone();
+      setIsLoaded(true);
       window.dispatchEvent(new Event('resize'));
       setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
       setTimeout(() => window.dispatchEvent(new Event('resize')), 300);
     };
 
-    script.onerror = () => onDone();
+    script.onerror = () => setIsLoaded(true);
 
     widgetDiv.appendChild(script);
     container.appendChild(widgetDiv);
 
-    setTimeout(() => {
-      onDone();
+    const fallbackTimer = setTimeout(() => {
+      setIsLoaded(true);
       window.dispatchEvent(new Event('resize'));
     }, 1200);
-  };
 
-  useEffect(() => {
-    // 1. Initialize active locale first
-    if (isFr) {
-      if (frContainerRef.current && !frInitializedRef.current) {
-        frInitializedRef.current = true;
-        initWidget(frContainerRef.current, 'fr', () => setFrLoaded(true));
-      }
-    } else {
-      if (enContainerRef.current && !enInitializedRef.current) {
-        enInitializedRef.current = true;
-        initWidget(enContainerRef.current, 'en', () => setEnLoaded(true));
-      }
-    }
-
-    // 2. Warm up alternate locale in background after initial paint
-    const warmTimer = setTimeout(() => {
-      if (isFr) {
-        if (enContainerRef.current && !enInitializedRef.current) {
-          enInitializedRef.current = true;
-          initWidget(enContainerRef.current, 'en', () => setEnLoaded(true));
-        }
-      } else {
-        if (frContainerRef.current && !frInitializedRef.current) {
-          frInitializedRef.current = true;
-          initWidget(frContainerRef.current, 'fr', () => setFrLoaded(true));
-        }
-      }
-    }, 400);
-
-    return () => clearTimeout(warmTimer);
-  }, []);
-
-  // When language switches, trigger layout recalculations
-  useEffect(() => {
-    if (isFr) {
-      if (frContainerRef.current && !frInitializedRef.current) {
-        frInitializedRef.current = true;
-        initWidget(frContainerRef.current, 'fr', () => setFrLoaded(true));
-      }
-    } else {
-      if (enContainerRef.current && !enInitializedRef.current) {
-        enInitializedRef.current = true;
-        initWidget(enContainerRef.current, 'en', () => setEnLoaded(true));
-      }
-    }
-
-    window.dispatchEvent(new Event('resize'));
-    const t1 = setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
-    return () => clearTimeout(t1);
-  }, [isFr]);
-
-  const activeLoaded = isFr ? frLoaded : enLoaded;
+    return () => clearTimeout(fallbackTimer);
+  }, [locale]);
 
   return (
     <div className="w-full max-w-6xl mx-auto px-2 sm:px-4 my-3 relative z-20">
@@ -131,25 +78,19 @@ export const CarTripWidget: React.FC = () => {
       `}</style>
 
       {/* Discreet loading spinner while active widget initializes */}
-      {!activeLoaded && (
+      {!isLoaded && (
         <div className="w-full py-5 flex items-center justify-center gap-2 text-xs text-white/50">
           <div className="w-4 h-4 border-2 border-[#32a8dd] border-t-transparent rounded-full animate-spin" />
           <span>{isFr ? 'Chargement des meilleures offres de location de voitures...' : 'Loading best car rental deals...'}</span>
         </div>
       )}
 
-      {/* French Widget Container */}
+      {/* Widget Container */}
       <div 
-        ref={frContainerRef} 
-        id="safarihoo-car-widget-container-fr" 
-        className={isFr ? 'w-full relative opacity-100 z-10 transition-opacity duration-150' : 'w-full absolute -left-[9999px] top-0 opacity-0 pointer-events-none -z-10'}
-      />
-
-      {/* English Widget Container */}
-      <div 
-        ref={enContainerRef} 
-        id="safarihoo-car-widget-container-en" 
-        className={!isFr ? 'w-full relative opacity-100 z-10 transition-opacity duration-150' : 'w-full absolute -left-[9999px] top-0 opacity-0 pointer-events-none -z-10'}
+        key={`car-widget-${locale}`}
+        ref={containerRef} 
+        id="safarihoo-car-widget-container" 
+        className="w-full relative z-10 min-h-[180px]"
       />
     </div>
   );
