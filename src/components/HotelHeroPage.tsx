@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { HeroHeading } from './HeroHeading';
 import { HotelTripWidget } from './HotelTripWidget';
+import { AttractionsSection } from './AttractionsSection';
 import { TrustBadges } from './TrustBadges';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -45,10 +46,17 @@ export const HotelHeroPage: React.FC<HotelHeroPageProps> = ({
     }
   }, [isActive]);
 
+  const scrollToHotelSearch = () => {
+    const el = document.getElementById('safarihoo-hotel-widget-container');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
   return (
     <div id="hotel-page-view" className="w-full flex flex-col items-center relative">
-      {/* Cinematic Video Background for Hotels */}
-      <div className="absolute inset-0 w-full h-[760px] md:h-[860px] lg:h-[920px] overflow-hidden pointer-events-none z-0">
+      {/* Cinematic Video Background for Hotels & Attractions */}
+      <div className="absolute inset-x-0 top-0 w-full h-[760px] md:h-[860px] lg:h-[920px] overflow-hidden pointer-events-none z-0">
         <video
           ref={videoRef}
           autoPlay
@@ -76,7 +84,7 @@ export const HotelHeroPage: React.FC<HotelHeroPageProps> = ({
 
       <div className="w-full flex flex-col items-center relative z-10">
         {/* Hero Main Content */}
-        <main className="w-full flex flex-col items-center justify-center flex-grow">
+        <main className="w-full flex flex-col items-center justify-center flex-grow pb-10 sm:pb-14">
           {/* Main Title Section without buttons */}
           <HeroHeading
             badgeText={t('hotels.badge')}
@@ -96,8 +104,11 @@ export const HotelHeroPage: React.FC<HotelHeroPageProps> = ({
           <HotelTripWidget />
         </main>
 
+        {/* Attractions Section below the Hotels widget */}
+        <AttractionsSection onFocusHotelSearch={scrollToHotelSearch} />
+
         {/* Trust & Features Row */}
-        <section className="w-full relative z-10 mt-6">
+        <section className="w-full relative z-10 bg-black">
           <TrustBadges />
         </section>
       </div>

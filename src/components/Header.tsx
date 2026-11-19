@@ -71,7 +71,7 @@ export const Header: React.FC<HeaderProps> = ({
               key={key}
               id={`nav-link-${key.toLowerCase()}`}
               onClick={() => handleNavClick(key)}
-              className="relative py-1 text-white hover:text-white transition-all focus:outline-none flex items-center"
+              className="relative py-1 text-white hover:text-white transition-all focus:outline-none flex items-center whitespace-nowrap shrink-0 cursor-pointer"
             >
               <span className={isActive ? 'font-semibold text-white' : 'font-normal text-white/90 hover:text-white'}>
                 {displayLabel}

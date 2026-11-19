@@ -85,16 +85,16 @@ export function getSafarihooResponse(userQuery: string, language: 'FR' | 'EN'): 
     };
   }
 
-  // 4. HOTELS & SÉJOURS (TRIP.COM)
-  if (/(hotel|hébergement|logement|chambre|resort|dormir|trip\.com|accommodation)/i.test(query)) {
+  // 4. HOTELS & ATTRACTIONS (TRIP.COM)
+  if (/(hotel|hébergement|logement|chambre|resort|dormir|trip\.com|accommodation|attraction|tour|excursion)/i.test(query)) {
     return {
       text: isFr
-        ? "🏨 **Hôtels & Séjours avec notre partenaire officiel Trip.com** :\n\nSafarihoo est connecté à l'inventaire mondial de Trip.com, regroupant plus de 1,4 million d'établissements dans plus de 200 pays :\n\n• **Large choix** : Hôtels de charme, resorts 5 étoiles, appartements urbains et auberges conviviales.\n• **Avantages exclusifs** : Tarifs négociés jusqu'à -30 %, programmes de fidélité et confirmation immédiate.\n• **Sérénité** : Filtre 'Annulation gratuite' disponible sur la majorité des réservations.\n\n👉 Cliquez sur l'onglet **'Hôtels'** dans le menu supérieur pour lancer votre recherche !"
-        : "🏨 **Hotels & Accommodations with Official Partner Trip.com**:\n\nSafarihoo connects you directly with Trip.com's worldwide catalog of over 1.4 million properties across 200+ countries:\n\n• **Extensive Selection**: Luxury 5-star resorts, boutique hotels, city apartments, and cozy villas.\n• **Exclusive Perks**: Negotiated discounts of up to 30%, real-time availability, and instant confirmations.\n• **Peace of Mind**: Filter easily by 'Free Cancellation' for total flexibility.\n\n👉 Click the **'Hotels'** tab in the top navigation to search destinations!",
+        ? "🏨 **Hôtels & Attractions avec notre partenaire officiel Trip.com** :\n\nSafarihoo est connecté à l'inventaire mondial de Trip.com, regroupant plus de 1,4 million d'établissements et des expériences uniques dans plus de 200 pays :\n\n• **Hôtels & Resorts** : Hôtels de charme, resorts 5 étoiles et appartements urbains.\n• **Attractions & Circuits** : Découvrez nos excursions populaires (Everest, Annapurna, Pokhara, Katmandou) et circuits sur mesure.\n• **Sérénité** : Filtre 'Annulation gratuite' disponible sur la majorité des réservations.\n\n👉 Cliquez sur l'onglet **'Hôtels & Attractions'** dans le menu supérieur pour explorer !"
+        : "🏨 **Hotels & Attractions with Official Partner Trip.com**:\n\nSafarihoo connects you directly with Trip.com's worldwide catalog of over 1.4 million properties and curated tours across 200+ countries:\n\n• **Hotels & Resorts**: Luxury 5-star resorts, boutique hotels, and city apartments.\n• **Attractions & Popular Tours**: Explore iconic journeys (Everest Escape, Annapurna Trail, Pokhara Retreat, Kathmandu Soul) and tailor-made experiences.\n• **Peace of Mind**: Filter easily by 'Free Cancellation' for total flexibility.\n\n👉 Click the **'Hotels & Attractions'** tab in the top navigation to explore!",
       action: {
         type: 'nav',
         target: 'Hotels',
-        label: isFr ? "Explorer les Hôtels Trip.com" : "Explore Trip.com Hotels",
+        label: isFr ? "Explorer Hôtels & Attractions" : "Explore Hotels & Attractions",
       },
       followUps: isFr
         ? ["Quels sont les hôtels avec annulation gratuite ?", "🚗 Louer une voiture sur place", "✈️ Réserver les vols associés"]

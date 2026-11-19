@@ -12,7 +12,7 @@ export const translations: Record<Language, Record<string, string>> = {
   EN: {
     // Header
     'nav.flights': 'Flights',
-    'nav.hotels': 'Hotels',
+    'nav.hotels': 'Hotels & Attractions',
     'nav.cars': 'Cars',
     'nav.airhelp': 'AirHelp',
     'nav.contact': 'Contact',
@@ -26,11 +26,11 @@ export const translations: Record<Language, Record<string, string>> = {
     'hero.btn.start': 'Start Your Journey',
     'hero.btn.destinations': 'View Destinations',
 
-    // Hotels Hero
-    'hotels.badge': 'LUXURY HOTELS & RESORTS',
+    // Hotels & Attractions Hero
+    'hotels.badge': 'LUXURY HOTELS & ATTRACTIONS',
     'hotels.title.line1': 'Ultimate Luxury That',
     'hotels.title.line2': 'Provide You Real Comfort',
-    'hotels.subtitle': 'Discover handpicked luxury hotels, boutique resorts, and world-class stays tailored for your ultimate relaxation.',
+    'hotels.subtitle': 'Discover handpicked luxury hotels, boutique resorts, and iconic attractions tailored for your ultimate journey.',
 
     // Cars Hero
     'cars.badge': 'PREMIUM CAR RENTAL',
@@ -85,7 +85,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'footer.contact': 'Contact',
     'footer.services': 'Services',
     'footer.flights': 'Flights',
-    'footer.hotels': 'Hotels',
+    'footer.hotels': 'Hotels & Attractions',
     'footer.cars': 'Cars',
     'footer.airhelp': 'AirHelp',
     'footer.resources': 'Resources',
@@ -109,7 +109,7 @@ export const translations: Record<Language, Record<string, string>> = {
   FR: {
     // Header
     'nav.flights': 'Vols',
-    'nav.hotels': 'Hôtels',
+    'nav.hotels': 'Hôtels & Attractions',
     'nav.cars': 'Voitures',
     'nav.airhelp': 'AirHelp',
     'nav.contact': 'Contact',
@@ -123,11 +123,11 @@ export const translations: Record<Language, Record<string, string>> = {
     'hero.btn.start': 'Commencer Votre Voyage',
     'hero.btn.destinations': 'Voir les Destinations',
 
-    // Hotels Hero
-    'hotels.badge': 'HÔTELS & RÉSIDENCES DE LUXE',
+    // Hotels & Attractions Hero
+    'hotels.badge': 'HÔTELS DE LUXE & ATTRACTIONS',
     'hotels.title.line1': 'Le Luxe Absolu Pour',
     'hotels.title.line2': 'Un Confort Inégalé',
-    'hotels.subtitle': 'Découvrez des hôtels d’exception, des complexes hôteliers et des séjours de prestige adaptés à votre détente.',
+    'hotels.subtitle': 'Découvrez des hôtels d’exception, des complexes hôteliers et des attractions emblématiques adaptés à votre séjour.',
 
     // Cars Hero
     'cars.badge': 'LOCATION DE VOITURE PREMIUM',
@@ -182,7 +182,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'footer.contact': 'Contact',
     'footer.services': 'Services',
     'footer.flights': 'Vols',
-    'footer.hotels': 'Hôtels',
+    'footer.hotels': 'Hôtels & Attractions',
     'footer.cars': 'Voitures',
     'footer.airhelp': 'AirHelp',
     'footer.resources': 'Ressources',
