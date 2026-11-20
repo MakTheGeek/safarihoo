@@ -1,8 +1,9 @@
 import React from 'react';
 import { Facebook, Youtube, ExternalLink } from 'lucide-react';
 import { SafarihooLogo } from './SafarihooLogo';
-import { NavItem } from '../types';
+import { NavItem, SiteLinkPlacement } from '../types';
 import { useLanguage } from '../context/LanguageContext';
+import { useCms } from '../context/CmsContext';
 
 interface FooterProps {
   onOpenAirHelp?: () => void;
@@ -14,14 +15,36 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({
-  onOpenAirHelp,
-  onOpenContact,
   onSelectService,
   onSelectPage,
   onOpenNewsletter,
   onOpenCookies,
 }) => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
+  const { links } = useCms();
+
+  const renderCustomLinks = (placement: SiteLinkPlacement) =>
+    links
+      .filter((l) => l.active && l.placement === placement)
+      .map((link) => (
+        <li key={link.id}>
+          <a
+            href={link.url}
+            target={link.openInNewTab ? '_blank' : undefined}
+            rel={link.openInNewTab ? 'noopener noreferrer' : undefined}
+            className="hover:text-white transition-colors inline-flex items-center gap-1 group"
+          >
+            <span>{language === 'FR' ? link.labelFr : link.labelEn}</span>
+            {link.openInNewTab && (
+              <ExternalLink className="w-3 h-3 text-white/40 group-hover:text-white transition-colors" />
+            )}
+          </a>
+        </li>
+      ));
+
+  const supportEmail = t('contact.email');
+  const supportPhone = t('contact.phone');
+  const telHref = `tel:${supportPhone.replace(/[^\d+]/g, '')}`;
 
   return (
     <footer id="main-footer" className="w-full bg-[#050505] text-white pt-16 pb-12 relative overflow-hidden select-none border-t border-white/10 mt-auto">
@@ -69,10 +92,11 @@ export const Footer: React.FC<FooterProps> = ({
                   {t('footer.contact')}
                 </button>
               </li>
+              {renderCustomLinks('footer_company')}
             </ul>
           </div>
 
-          {/* Column 2: Services (Replaces Products) */}
+          {/* Column 2: Services */}
           <div className="flex flex-col space-y-3.5">
             <h4 className="text-sm sm:text-base font-bold text-white tracking-tight">{t('footer.services')}</h4>
             <ul className="space-y-2.5 text-xs sm:text-sm text-white/70">
@@ -112,6 +136,7 @@ export const Footer: React.FC<FooterProps> = ({
                   {t('footer.airhelp')}
                 </button>
               </li>
+              {renderCustomLinks('footer_services')}
             </ul>
           </div>
 
@@ -159,6 +184,7 @@ export const Footer: React.FC<FooterProps> = ({
                   {t('footer.whitepaper')}
                 </button>
               </li>
+              {renderCustomLinks('footer_resources')}
             </ul>
           </div>
 
@@ -211,6 +237,7 @@ export const Footer: React.FC<FooterProps> = ({
                   {t('footer.cookies')}
                 </button>
               </li>
+              {renderCustomLinks('footer_legal')}
             </ul>
           </div>
 
@@ -219,13 +246,13 @@ export const Footer: React.FC<FooterProps> = ({
             <h4 className="text-sm sm:text-base font-bold text-white tracking-tight">{t('footer.contact')}</h4>
             <ul className="space-y-2.5 text-xs sm:text-sm text-white/70">
               <li>
-                <a href="mailto:support@safarihoo.com" className="hover:text-white transition-colors break-all">
-                  support@safarihoo.com
+                <a href={`mailto:${supportEmail}`} className="hover:text-white transition-colors break-all">
+                  {supportEmail}
                 </a>
               </li>
               <li>
-                <a href="tel:+242056756629" className="hover:text-white transition-colors">
-                  +242 05 675 6629
+                <a href={telHref} className="hover:text-white transition-colors">
+                  {supportPhone}
                 </a>
               </li>
             </ul>

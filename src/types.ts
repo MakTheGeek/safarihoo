@@ -1,10 +1,10 @@
 export type ServiceTab = 'Flights' | 'Hotels' | 'Cars' | 'Cruises';
 
-export type NavItem = 
-  | 'Flights' 
-  | 'Hotels' 
-  | 'Cars' 
-  | 'AirHelp' 
+export type NavItem =
+  | 'Flights'
+  | 'Hotels'
+  | 'Cars'
+  | 'AirHelp'
   | 'Contact'
   | 'About'
   | 'Careers'
@@ -13,7 +13,8 @@ export type NavItem =
   | 'Privacy'
   | 'Security'
   | 'Terms'
-  | 'Acceptance';
+  | 'Acceptance'
+  | 'Admin';
 
 export interface DestinationSuggestion {
   id: string;
@@ -33,4 +34,90 @@ export interface SearchState {
   adults: number;
   children: number;
   cabinClass: string;
+}
+
+export type CmsContentGroup =
+  | 'hero'
+  | 'hotels'
+  | 'cars'
+  | 'airhelp'
+  | 'trust'
+  | 'footer'
+  | 'attractions'
+  | 'contact'
+  | 'custom';
+
+export interface SiteContentItem {
+  id: string;
+  key: string;
+  en: string;
+  fr: string;
+  group: CmsContentGroup;
+  label: string;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+}
+
+export type SiteFileCategory = 'image' | 'document' | 'media' | 'asset';
+export type SiteFileStorageMode = 'inline' | 'external';
+
+export interface SiteFileItem {
+  id: string;
+  name: string;
+  mimeType: string;
+  category: SiteFileCategory;
+  storageMode: SiteFileStorageMode;
+  dataUrl: string;
+  externalUrl: string;
+  sizeBytes: number;
+  description: string;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+}
+
+export type SiteLinkPlacement =
+  | 'header'
+  | 'footer_company'
+  | 'footer_services'
+  | 'footer_resources'
+  | 'footer_legal'
+  | 'custom_bar';
+
+export interface SiteLinkItem {
+  id: string;
+  labelEn: string;
+  labelFr: string;
+  url: string;
+  placement: SiteLinkPlacement;
+  openInNewTab: boolean;
+  active: boolean;
+  order: number;
+  description: string;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+}
+
+export type AttractionCategory = 'Adventure' | 'Culture' | 'Wellness';
+
+export interface SiteAttractionItem {
+  id: string;
+  title: string;
+  titleFr: string;
+  price: number;
+  description: string;
+  descriptionFr: string;
+  tag: string;
+  tagFr: string;
+  duration: string;
+  durationFr: string;
+  category: AttractionCategory;
+  location: string;
+  imageUrl: string;
+  bookingUrl: string;
+  highlights: string[];
+  highlightsFr: string[];
+  active: boolean;
+  order: number;
+  createdAt?: unknown;
+  updatedAt?: unknown;
 }

@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, X, ChevronDown, Check, Globe } from 'lucide-react';
+import { Menu, X, Globe, ExternalLink } from 'lucide-react';
 import { NavItem } from '../types';
 import { SafarihooLogo } from './SafarihooLogo';
 import { useLanguage, Language } from '../context/LanguageContext';
+import { useCms } from '../context/CmsContext';
 
 interface HeaderProps {
   activeNav: NavItem;
@@ -21,9 +22,11 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectNav,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [langMenuOpen, setLangMenuOpen] = useState(false);
   const { language, setLanguage, t } = useLanguage();
+  const { links } = useCms();
   const langMenuRef = useRef<HTMLDivElement>(null);
+
+  const customHeaderLinks = links.filter((l) => l.active && l.placement === 'header');
 
   const navItemsConfig: { key: NavItem; labelKey: string }[] = [
     { key: 'Flights', labelKey: 'nav.flights' },
@@ -38,11 +41,11 @@ export const Header: React.FC<HeaderProps> = ({
     setMobileMenuOpen(false);
   };
 
-  // Close language dropdown on outside click
+  // Close menu on outside click if needed
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (langMenuRef.current && !langMenuRef.current.contains(event.target as Node)) {
-        setLangMenuOpen(false);
+        // noop preserved
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -55,14 +58,14 @@ export const Header: React.FC<HeaderProps> = ({
       <div 
         id="safarihoo-logo"
         onClick={() => onSelectNav('Flights')}
-        className="flex items-center cursor-pointer group select-none py-1"
+        className="flex items-center cursor-pointer group select-none py-1 shrink-0"
         title="Safarihoo"
       >
         <SafarihooLogo className="h-9 sm:h-11 w-auto" />
       </div>
 
       {/* Desktop Navigation Links */}
-      <nav id="desktop-nav" className="hidden md:flex items-center space-x-7 lg:space-x-9 text-sm font-medium">
+      <nav id="desktop-nav" className="hidden md:flex items-center space-x-6 lg:space-x-8 text-sm font-medium">
         {navItemsConfig.map(({ key, labelKey }) => {
           const isActive = activeNav === key;
           const displayLabel = t(labelKey);
@@ -88,10 +91,25 @@ export const Header: React.FC<HeaderProps> = ({
           );
         })}
 
+        {customHeaderLinks.map((link) => (
+          <a
+            key={link.id}
+            href={link.url}
+            target={link.openInNewTab ? '_blank' : undefined}
+            rel={link.openInNewTab ? 'noopener noreferrer' : undefined}
+            className="relative py-1 text-white/90 hover:text-white transition-all inline-flex items-center gap-1 whitespace-nowrap shrink-0"
+            title={link.description || undefined}
+          >
+            <span>{language === 'FR' ? link.labelFr : link.labelEn}</span>
+            {link.openInNewTab && <ExternalLink className="w-3 h-3 text-white/60" />}
+          </a>
+        ))}
+
         {/* 1-Click Fast Language Toggle (EN | FR) */}
         <div 
           id="language-switcher-pill"
-          className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md shadow-sm"
+          ref={langMenuRef}
+          className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md shadow-sm shrink-0"
         >
           <Globe className="w-3.5 h-3.5 text-white/70 ml-0.5" aria-hidden="true" />
           <button
@@ -181,6 +199,20 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             );
           })}
+
+          {customHeaderLinks.map((link) => (
+            <a
+              key={link.id}
+              href={link.url}
+              target={link.openInNewTab ? '_blank' : undefined}
+              rel={link.openInNewTab ? 'noopener noreferrer' : undefined}
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center justify-between text-left py-2.5 px-3 rounded-xl text-white/85 hover:bg-white/5 hover:text-white transition-colors"
+            >
+              <span>{language === 'FR' ? link.labelFr : link.labelEn}</span>
+              {link.openInNewTab && <ExternalLink className="w-3.5 h-3.5 text-white/50" />}
+            </a>
+          ))}
 
           {/* Language selector in mobile menu */}
           <div className="pt-3 border-t border-white/10 flex items-center justify-between px-2">

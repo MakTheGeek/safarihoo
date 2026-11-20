@@ -11,169 +11,9 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-
-import everestImg from '../assets/images/attraction_everest_escape_1795099729350.jpg';
-import annapurnaImg from '../assets/images/attraction_annapurna_trail_1795099729233.jpg';
-import pokharaImg from '../assets/images/attraction_pokhara_retreat_1795099729185.jpg';
-import kathmanduImg from '../assets/images/attraction_kathmandu_soul_1795099729143.jpg';
-import himalayanImg from '../assets/images/attraction_himalayan_escape_1795099729427.jpg';
-import madeForYouImg from '../assets/images/attraction_made_for_you_1795099729307.jpg';
-
-interface AttractionTour {
-  id: string;
-  title: string;
-  titleFr: string;
-  price: number;
-  description: string;
-  descriptionFr: string;
-  tag: string;
-  tagFr: string;
-  duration: string;
-  durationFr: string;
-  category: 'Adventure' | 'Culture' | 'Wellness';
-  location: string;
-  image: string;
-  highlights: string[];
-  highlightsFr: string[];
-}
-
-const ATTRACTION_TOURS: AttractionTour[] = [
-  {
-    id: 'everest-escape',
-    title: 'Everest Escape',
-    titleFr: 'Évasion Everest',
-    price: 980,
-    description:
-      'Trek through majestic Himalayan passes, glacial valleys, sherpa villages and breathtaking 8,000m summits.',
-    descriptionFr:
-      'Explorez des cols himalayens majestueux, des vallées glaciaires, des villages sherpas et des sommets de 8 000 m.',
-    tag: 'high altitude',
-    tagFr: 'haute altitude',
-    duration: '7 days',
-    durationFr: '7 jours',
-    category: 'Adventure',
-    location: 'Khumbu Region, Nepal',
-    image: everestImg,
-    highlights: [
-      'Scenic mountain flight to Lukla & Namche Bazaar',
-      'Sunrise panorama at Kala Patthar & Tengboche Monastery',
-      'Certified high-altitude mountain guide & lodges included',
-    ],
-    highlightsFr: [
-      'Vol panoramique vers Lukla et Namche Bazaar',
-      'Lever de soleil sur le Kala Patthar et monastère de Tengboche',
-      'Guide certifié haute montagne et hébergements inclus',
-    ],
-  },
-  {
-    id: 'annapurna-trail',
-    title: 'Annapurna Trail',
-    titleFr: 'Sentier Annapurna',
-    price: 750,
-    description:
-      "Follow iconic mountain trails through peaceful villages, terraced ridges and views of Nepal's most spectacular landscapes.",
-    descriptionFr:
-      'Suivez des sentiers légendaires entre villages paisibles, rizières en terrasses et panoramas spectaculaires.',
-    tag: 'popular',
-    tagFr: 'populaire',
-    duration: '6 days',
-    durationFr: '6 jours',
-    category: 'Adventure',
-    location: 'Annapurna Sanctuary, Nepal',
-    image: annapurnaImg,
-    highlights: [
-      'Poon Hill golden dawn ridge above the Annapurna massif',
-      'Traditional Gurung heritage villages & mountain teahouses',
-      'Private ground transfers & ACAP conservation permits',
-    ],
-    highlightsFr: [
-      'Aube dorée sur Poon Hill face au massif des Annapurnas',
-      'Villages traditionnels Gurung et auberges de montagne',
-      'Transferts privés et permis de conservation inclus',
-    ],
-  },
-  {
-    id: 'pokhara-retreat',
-    title: 'Pokhara Retreat',
-    titleFr: 'Retraite à Pokhara',
-    price: 840,
-    description:
-      'Slow down beside the peace of a lake, surrounded by green hills, distant peaks and the quiet beauty of Nepal.',
-    descriptionFr:
-      'Ralentissez au bord d’un lac paisible, entouré de collines verdoyantes, de sommets lointains et de sérénité.',
-    tag: 'relax',
-    tagFr: 'détente',
-    duration: '4 days',
-    durationFr: '4 jours',
-    category: 'Wellness',
-    location: 'Phewa Lake, Pokhara',
-    image: pokharaImg,
-    highlights: [
-      'Private wooden boat crossing on tranquil Phewa Lake',
-      'World Peace Pagoda sunrise & lakeside wellness spa',
-      'Boutique lakefront resort stay with breakfast',
-    ],
-    highlightsFr: [
-      'Traversée privée en barque traditionnelle sur le lac Phewa',
-      'Lever du soleil à la Pagode de la Paix et spa bien-être',
-      'Séjour en hôtel-boutique au bord du lac avec petit-déjeuner',
-    ],
-  },
-  {
-    id: 'kathmandu-soul',
-    title: 'Kathmandu Soul',
-    titleFr: 'Âme de Katmandou',
-    price: 450,
-    description:
-      'Pass through ancient temples, hidden courtyards and sacred shrines filled with history and spirit of Nepal.',
-    descriptionFr:
-      'Parcourez temples anciens, cours cachées et sanctuaires sacrés imprégnés d’histoire et de spiritualité.',
-    tag: 'cultural',
-    tagFr: 'culturel',
-    duration: '3 days',
-    durationFr: '3 jours',
-    category: 'Culture',
-    location: 'Kathmandu Valley, Nepal',
-    image: kathmanduImg,
-    highlights: [
-      'UNESCO heritage walk: Swayambhunath, Boudhanath & Patan',
-      'Private artisan courtyard tour & Newari culinary tasting',
-      'Boutique heritage hotel in historic Kathmandu',
-    ],
-    highlightsFr: [
-      'Visite UNESCO : Swayambhunath, Boudhanath et Patan',
-      'Atelier d’artisans privatif et dégustation culinaire Newari',
-      'Hôtel de charme historique au cœur de Katmandou',
-    ],
-  },
-  {
-    id: 'himalayan-escape',
-    title: 'Himalayan Escape',
-    titleFr: 'Escapade Himalayenne',
-    price: 850,
-    description:
-      'Venture above the clouds to alpine ridges, glowing sunrises, ancient trails and unforgettable mountain horizons.',
-    descriptionFr:
-      'Prenez de la hauteur au-dessus des nuages entre crêtes alpines, levers de soleil dorés et horizons infinis.',
-    tag: 'adventure',
-    tagFr: 'aventure',
-    duration: '5 days',
-    durationFr: '5 jours',
-    category: 'Adventure',
-    location: 'Langtang & Nagarkot, Nepal',
-    image: himalayanImg,
-    highlights: [
-      'Golden hour ridge expedition above the cloud line',
-      'Panoramic helicopter flyover option & luxury mountain lodge',
-      'All-inclusive meals, permits & concierge support',
-    ],
-    highlightsFr: [
-      'Expédition en altitude au-dessus de la mer de nuages',
-      'Option survol panoramique et lodge de montagne haut de gamme',
-      'Repas, permis et conciergerie inclus',
-    ],
-  },
-];
+import { useCms } from '../context/CmsContext';
+import { madeForYouImg } from '../data/cmsDefaults';
+import { SiteAttractionItem } from '../types';
 
 interface AttractionsSectionProps {
   onFocusHotelSearch?: () => void;
@@ -182,13 +22,16 @@ interface AttractionsSectionProps {
 export const AttractionsSection: React.FC<AttractionsSectionProps> = ({
   onFocusHotelSearch,
 }) => {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
+  const { attractions: tours } = useCms();
   const isFr = language === 'FR';
 
-  // Center default is Pokhara Retreat (index 2) matching the reference screenshot
+  const total = tours.length;
+
+  // Center default on index 2 when >= 5 tours, otherwise middle item
   const [activeIndex, setActiveIndex] = useState<number>(2);
   const [allInclusive, setAllInclusive] = useState<boolean>(true);
-  const [selectedTour, setSelectedTour] = useState<AttractionTour | null>(null);
+  const [selectedTour, setSelectedTour] = useState<SiteAttractionItem | null>(null);
   const [showAllToursModal, setShowAllToursModal] = useState<boolean>(false);
   const [showTailorModal, setShowTailorModal] = useState<boolean>(false);
   const [tailorSubmitted, setTailorSubmitted] = useState<boolean>(false);
@@ -200,7 +43,12 @@ export const AttractionsSection: React.FC<AttractionsSectionProps> = ({
   );
 
   const touchStartXRef = React.useRef<number | null>(null);
-  const total = ATTRACTION_TOURS.length;
+
+  useEffect(() => {
+    if (total > 0 && activeIndex >= total) {
+      setActiveIndex(Math.floor(total / 2));
+    }
+  }, [total, activeIndex]);
 
   useEffect(() => {
     const checkViewport = () => {
@@ -212,10 +60,12 @@ export const AttractionsSection: React.FC<AttractionsSectionProps> = ({
   }, []);
 
   const handlePrev = () => {
+    if (total === 0) return;
     setActiveIndex((prev) => (prev - 1 + total) % total);
   };
 
   const handleNext = () => {
+    if (total === 0) return;
     setActiveIndex((prev) => (prev + 1) % total);
   };
 
@@ -237,8 +87,9 @@ export const AttractionsSection: React.FC<AttractionsSectionProps> = ({
     }
   };
 
-  // Compute circular signed offset (-2, -1, 0, +1, +2)
+  // Compute circular signed offset
   const getRelativeOffset = (index: number) => {
+    if (total === 0) return 0;
     let diff = index - activeIndex;
     if (diff > total / 2) diff -= total;
     if (diff < -total / 2) diff += total;
@@ -259,8 +110,8 @@ export const AttractionsSection: React.FC<AttractionsSectionProps> = ({
 
   const filteredModalTours =
     modalFilter === 'All'
-      ? ATTRACTION_TOURS
-      : ATTRACTION_TOURS.filter((tour) => tour.category === modalFilter);
+      ? tours
+      : tours.filter((tour) => tour.category === modalFilter);
 
   const handleTailorSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -291,7 +142,7 @@ export const AttractionsSection: React.FC<AttractionsSectionProps> = ({
         {/* Top Tag + Mixed Serif/Sans Display Headline */}
         <div className="text-center flex flex-col items-center mb-10 sm:mb-14">
           <span className="inline-block px-5 py-1.5 rounded-full bg-[#f4f5f7] text-[#475569] text-[10px] sm:text-[11px] font-semibold tracking-[0.16em] uppercase mb-5">
-            {isFr ? 'VOTRE VOYAGE' : 'YOUR JOURNEY'}
+            {t('attractions.kicker')}
           </span>
 
           <h2 className="text-3xl sm:text-5xl md:text-[54px] font-semibold text-[#0b1220] tracking-tight leading-[1.08] max-w-2xl text-balance">
@@ -329,10 +180,11 @@ export const AttractionsSection: React.FC<AttractionsSectionProps> = ({
           onTouchEnd={handleTouchEnd}
           className="flex items-center justify-center relative h-[410px] sm:h-[440px] lg:h-[470px] w-full touch-pan-y"
         >
-          {ATTRACTION_TOURS.map((tour, idx) => {
+          {tours.map((tour, idx) => {
             const offset = getRelativeOffset(idx);
             const absOffset = Math.abs(offset);
             const isCenter = offset === 0;
+            const isVisibleCard = absOffset <= 2;
 
             const stepX = isMobileViewport ? 115 : 205;
             const translateX = offset * stepX;
@@ -346,7 +198,9 @@ export const AttractionsSection: React.FC<AttractionsSectionProps> = ({
               ? 0.72
               : 0.74;
             const zIndex = isCenter ? 30 : absOffset === 1 ? 20 : 10;
-            const opacity = isCenter
+            const opacity = !isVisibleCard
+              ? 0
+              : isCenter
               ? 1
               : absOffset === 1
               ? isMobileViewport
@@ -376,13 +230,14 @@ export const AttractionsSection: React.FC<AttractionsSectionProps> = ({
                   transform: `translateX(${translateX}px) scale(${scale})`,
                   zIndex,
                   opacity,
+                  pointerEvents: isVisibleCard ? 'auto' : 'none',
                 }}
                 className={`absolute w-[250px] sm:w-[290px] lg:w-[310px] h-[380px] sm:h-[420px] lg:h-[445px] rounded-[24px] overflow-hidden cursor-pointer transition-all duration-300 ease-out shadow-[0_20px_50px_rgba(11,18,32,0.18)] group bg-slate-900 ${
                   isCenter ? 'ring-1 ring-black/5' : 'hover:brightness-105'
                 }`}
               >
                 <img
-                  src={tour.image}
+                  src={tour.imageUrl}
                   alt={displayTitle}
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
@@ -467,14 +322,12 @@ export const AttractionsSection: React.FC<AttractionsSectionProps> = ({
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10 sm:mb-12">
             <div>
               <span className="inline-block px-5 py-1.5 rounded-full bg-[#f4f5f7] text-[#475569] text-[10px] sm:text-[11px] font-semibold tracking-[0.16em] uppercase">
-                {isFr ? 'À PROPOS DU NÉPAL' : 'ABOUT NEPAL'}
+                {t('attractions.about.badge')}
               </span>
             </div>
 
             <p className="text-base sm:text-lg text-[#0b1220] font-normal leading-relaxed max-w-lg">
-              {isFr
-                ? 'Le Népal est plus qu’une destination — c’est un voyage. Des sommets himalayens aux cités anciennes, chaque expérience vous rapproche de sa nature, de sa culture et de ses habitants.'
-                : 'Nepal is more than a destination — it’s a journey. From Himalayan peaks to ancient cities, every experience brings you closer to its nature, culture and people.'}
+              {t('attractions.about.text')}
             </p>
           </div>
 
@@ -657,7 +510,7 @@ export const AttractionsSection: React.FC<AttractionsSectionProps> = ({
           >
             <div className="relative h-56 sm:h-64">
               <img
-                src={selectedTour.image}
+                src={selectedTour.imageUrl}
                 alt={isFr ? selectedTour.titleFr : selectedTour.title}
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
@@ -718,7 +571,10 @@ export const AttractionsSection: React.FC<AttractionsSectionProps> = ({
 
               <div className="flex flex-wrap items-center gap-3">
                 <a
-                  href={`https://www.trip.com/things-to-do/list/?keyword=${encodeURIComponent(selectedTour.title + ' Nepal')}`}
+                  href={
+                    selectedTour.bookingUrl ||
+                    `https://www.trip.com/things-to-do/list/?keyword=${encodeURIComponent(selectedTour.title)}`
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-5 rounded-full bg-[#050a18] hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold transition-colors"
@@ -814,7 +670,7 @@ export const AttractionsSection: React.FC<AttractionsSectionProps> = ({
                 >
                   <div className="h-44 relative">
                     <img
-                      src={tour.image}
+                      src={tour.imageUrl}
                       alt={isFr ? tour.titleFr : tour.title}
                       referrerPolicy="no-referrer"
                       className="w-full h-full object-cover"

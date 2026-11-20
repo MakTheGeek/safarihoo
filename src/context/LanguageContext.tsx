@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useCms } from './CmsContext';
 
 export type Language = 'EN' | 'FR';
 
@@ -31,6 +32,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'hotels.title.line1': 'Ultimate Luxury That',
     'hotels.title.line2': 'Provide You Real Comfort',
     'hotels.subtitle': 'Discover handpicked luxury hotels, boutique resorts, and iconic attractions tailored for your ultimate journey.',
+
+    // Attractions Editorial
+    'attractions.kicker': 'YOUR JOURNEY',
+    'attractions.about.badge': 'ABOUT NEPAL',
+    'attractions.about.text':
+      "Nepal is more than a destination — it's a journey. From Himalayan peaks to ancient cities, every experience brings you closer to its nature, culture and people.",
 
     // Cars Hero
     'cars.badge': 'PREMIUM CAR RENTAL',
@@ -76,6 +83,10 @@ export const translations: Record<Language, Record<string, string>> = {
     'dest.card3.desc': 'Description',
     'dest.card3.book': 'Book Trip',
     'dest.card3.total': 'Total Price',
+
+    // Contact
+    'contact.email': 'support@safarihoo.com',
+    'contact.phone': '+242 05 675 6629',
 
     // Footer
     'footer.company': 'Company',
@@ -129,6 +140,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'hotels.title.line2': 'Un Confort Inégalé',
     'hotels.subtitle': 'Découvrez des hôtels d’exception, des complexes hôteliers et des attractions emblématiques adaptés à votre séjour.',
 
+    // Attractions Editorial
+    'attractions.kicker': 'VOTRE VOYAGE',
+    'attractions.about.badge': 'À PROPOS DU NÉPAL',
+    'attractions.about.text':
+      'Le Népal est plus qu’une destination — c’est un voyage. Des sommets himalayens aux cités anciennes, chaque expérience vous rapproche de sa nature, de sa culture et de ses habitants.',
+
     // Cars Hero
     'cars.badge': 'LOCATION DE VOITURE PREMIUM',
     'cars.title.line1': 'Trouvez Votre Voiture Idéale',
@@ -174,6 +191,10 @@ export const translations: Record<Language, Record<string, string>> = {
     'dest.card3.book': 'Réserver',
     'dest.card3.total': 'Prix Total',
 
+    // Contact
+    'contact.email': 'support@safarihoo.com',
+    'contact.phone': '+242 05 675 6629',
+
     // Footer
     'footer.company': 'Entreprise',
     'footer.about': 'À propos',
@@ -208,6 +229,7 @@ export const translations: Record<Language, Record<string, string>> = {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { getContentText } = useCms();
   const [language, setLanguageState] = useState<Language>(() => {
     try {
       const saved = localStorage.getItem('safarihoo_lang');
@@ -248,7 +270,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   const t = (key: string): string => {
-    return translations[language]?.[key] || translations['EN']?.[key] || key;
+    const fallback = translations[language]?.[key] || translations['EN']?.[key] || key;
+    return getContentText(key, language, fallback);
   };
 
   return (

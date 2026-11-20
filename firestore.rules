@@ -1,0 +1,249 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // Global Hardened Helpers
+    // -------------------------------------------------------------------------
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSafeHref(url) {
+      return url is string &&
+        url.size() >= 1 &&
+        url.size() <= 2000 &&
+        (
+          url.matches('^https://.*') ||
+          url.matches('^http://.*') ||
+          url.matches('^/.*') ||
+          url.matches('^#.*') ||
+          url.matches('^mailto:.*') ||
+          url.matches('^tel:.*')
+        );
+    }
+
+    function isSafeOptionalUrl(url) {
+      return url is string &&
+        url.size() <= 2000 &&
+        (
+          url.size() == 0 ||
+          url.matches('^https://.*') ||
+          url.matches('^http://.*') ||
+          url.matches('^/.*') ||
+          url.matches('^#.*')
+        );
+    }
+
+    function isSafeImageSrc(src) {
+      return src is string &&
+        src.size() >= 1 &&
+        src.size() <= 750000 &&
+        (
+          src.matches('^https://.*') ||
+          src.matches('^http://.*') ||
+          src.matches('^/.*') ||
+          src.matches('^data:image/[a-zA-Z0-9.+-]+;base64,.*')
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Entity Validators (Synchronized with firebase-blueprint.json)
+    // -------------------------------------------------------------------------
+    function isValidSiteContent(data) {
+      return data.keys().hasAll(['key', 'en', 'fr', 'group', 'label', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['key', 'en', 'fr', 'group', 'label', 'createdAt', 'updatedAt']) &&
+        data.key is string && data.key.size() >= 1 && data.key.size() <= 80 && data.key.matches('^[a-zA-Z0-9._\\-]+$') &&
+        data.en is string && data.en.size() <= 2000 &&
+        data.fr is string && data.fr.size() <= 2000 &&
+        data.group is string && data.group.size() <= 32 &&
+        data.group in ['hero', 'hotels', 'cars', 'airhelp', 'trust', 'footer', 'attractions', 'contact', 'custom'] &&
+        data.label is string && data.label.size() >= 1 && data.label.size() <= 120 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidSiteFile(data) {
+      return data.keys().hasAll([
+          'name', 'mimeType', 'category', 'storageMode',
+          'dataUrl', 'externalUrl', 'sizeBytes', 'description', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'name', 'mimeType', 'category', 'storageMode',
+          'dataUrl', 'externalUrl', 'sizeBytes', 'description', 'createdAt', 'updatedAt'
+        ]) &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 160 &&
+        data.mimeType is string && data.mimeType.size() >= 1 && data.mimeType.size() <= 120 &&
+        data.category is string && data.category.size() <= 32 &&
+        data.category in ['image', 'document', 'media', 'asset'] &&
+        data.storageMode is string && data.storageMode.size() <= 16 &&
+        data.storageMode in ['inline', 'external'] &&
+        data.dataUrl is string && data.dataUrl.size() <= 750000 &&
+        data.externalUrl is string && data.externalUrl.size() <= 2000 &&
+        (
+          (data.storageMode == 'inline' && data.dataUrl.size() >= 5 && data.dataUrl.matches('^data:[a-zA-Z0-9.+/_-]+(;charset=[a-zA-Z0-9_-]+)?;base64,.*')) ||
+          (data.storageMode == 'external' && isSafeHref(data.externalUrl))
+        ) &&
+        data.sizeBytes is int && data.sizeBytes >= 0 && data.sizeBytes <= 50000000 &&
+        data.description is string && data.description.size() <= 500 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidSiteLink(data) {
+      return data.keys().hasAll([
+          'labelEn', 'labelFr', 'url', 'placement',
+          'openInNewTab', 'active', 'order', 'description', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'labelEn', 'labelFr', 'url', 'placement',
+          'openInNewTab', 'active', 'order', 'description', 'createdAt', 'updatedAt'
+        ]) &&
+        data.labelEn is string && data.labelEn.size() >= 1 && data.labelEn.size() <= 100 &&
+        data.labelFr is string && data.labelFr.size() >= 1 && data.labelFr.size() <= 100 &&
+        isSafeHref(data.url) &&
+        data.placement is string && data.placement.size() <= 32 &&
+        data.placement in ['header', 'footer_company', 'footer_services', 'footer_resources', 'footer_legal', 'custom_bar'] &&
+        data.openInNewTab is bool &&
+        data.active is bool &&
+        data.order is int && data.order >= 0 && data.order <= 10000 &&
+        data.description is string && data.description.size() <= 300 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidStringArray(arr) {
+      return arr is list &&
+        arr.size() <= 8 &&
+        (arr.size() == 0 || (arr[0] is string && arr[0].size() <= 200));
+    }
+
+    function isValidSiteAttraction(data) {
+      return data.keys().hasAll([
+          'title', 'titleFr', 'price', 'description', 'descriptionFr',
+          'tag', 'tagFr', 'duration', 'durationFr', 'category',
+          'location', 'imageUrl', 'bookingUrl', 'highlights', 'highlightsFr',
+          'active', 'order', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'title', 'titleFr', 'price', 'description', 'descriptionFr',
+          'tag', 'tagFr', 'duration', 'durationFr', 'category',
+          'location', 'imageUrl', 'bookingUrl', 'highlights', 'highlightsFr',
+          'active', 'order', 'createdAt', 'updatedAt'
+        ]) &&
+        data.title is string && data.title.size() >= 1 && data.title.size() <= 120 &&
+        data.titleFr is string && data.titleFr.size() >= 1 && data.titleFr.size() <= 120 &&
+        (data.price is int || data.price is float) && data.price >= 0 && data.price <= 1000000 &&
+        data.description is string && data.description.size() >= 1 && data.description.size() <= 600 &&
+        data.descriptionFr is string && data.descriptionFr.size() >= 1 && data.descriptionFr.size() <= 600 &&
+        data.tag is string && data.tag.size() >= 1 && data.tag.size() <= 50 &&
+        data.tagFr is string && data.tagFr.size() >= 1 && data.tagFr.size() <= 50 &&
+        data.duration is string && data.duration.size() >= 1 && data.duration.size() <= 50 &&
+        data.durationFr is string && data.durationFr.size() >= 1 && data.durationFr.size() <= 50 &&
+        data.category is string && data.category.size() <= 24 &&
+        data.category in ['Adventure', 'Culture', 'Wellness'] &&
+        data.location is string && data.location.size() >= 1 && data.location.size() <= 120 &&
+        isSafeImageSrc(data.imageUrl) &&
+        isSafeOptionalUrl(data.bookingUrl) &&
+        isValidStringArray(data.highlights) &&
+        isValidStringArray(data.highlightsFr) &&
+        data.active is bool &&
+        data.order is int && data.order >= 0 && data.order <= 10000 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    // -------------------------------------------------------------------------
+    // Collection Match Blocks (No-Auth CMS Mode with Strict Schema Validation)
+    // -------------------------------------------------------------------------
+
+    match /test/{docId} {
+      allow get: if docId == 'connection';
+    }
+
+    match /site_content/{contentId} {
+      allow get: if isValidId(contentId);
+      allow list: if true;
+      allow create: if isValidId(contentId) &&
+        isValidSiteContent(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(contentId) &&
+        isValidSiteContent(incoming()) &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['key', 'en', 'fr', 'group', 'label', 'updatedAt']);
+      allow delete: if isValidId(contentId);
+    }
+
+    match /site_files/{fileId} {
+      allow get: if isValidId(fileId);
+      allow list: if true;
+      allow create: if isValidId(fileId) &&
+        isValidSiteFile(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(fileId) &&
+        isValidSiteFile(incoming()) &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'name', 'mimeType', 'category', 'storageMode',
+          'dataUrl', 'externalUrl', 'sizeBytes', 'description', 'updatedAt'
+        ]);
+      allow delete: if isValidId(fileId);
+    }
+
+    match /site_links/{linkId} {
+      allow get: if isValidId(linkId);
+      allow list: if true;
+      allow create: if isValidId(linkId) &&
+        isValidSiteLink(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(linkId) &&
+        isValidSiteLink(incoming()) &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'labelEn', 'labelFr', 'url', 'placement',
+          'openInNewTab', 'active', 'order', 'description', 'updatedAt'
+        ]);
+      allow delete: if isValidId(linkId);
+    }
+
+    match /site_attractions/{tourId} {
+      allow get: if isValidId(tourId);
+      allow list: if true;
+      allow create: if isValidId(tourId) &&
+        isValidSiteAttraction(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(tourId) &&
+        isValidSiteAttraction(incoming()) &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'titleFr', 'price', 'description', 'descriptionFr',
+          'tag', 'tagFr', 'duration', 'durationFr', 'category',
+          'location', 'imageUrl', 'bookingUrl', 'highlights', 'highlightsFr',
+          'active', 'order', 'updatedAt'
+        ]);
+      allow delete: if isValidId(tourId);
+    }
+  }
+}

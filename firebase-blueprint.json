@@ -1,0 +1,364 @@
+{
+  "entities": {
+    "SiteContent": {
+      "title": "SiteContent",
+      "description": "Editable bilingual (EN/FR) text override for any section of Safarihoo.",
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-zA-Z0-9._\\-]+$",
+          "description": "Translation or section key (e.g., hero.title.line1, contact.email)."
+        },
+        "en": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2000,
+          "description": "English text value."
+        },
+        "fr": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2000,
+          "description": "French text value."
+        },
+        "group": {
+          "type": "string",
+          "maxLength": 32,
+          "enum": [
+            "hero",
+            "hotels",
+            "cars",
+            "airhelp",
+            "trust",
+            "footer",
+            "attractions",
+            "contact",
+            "custom"
+          ],
+          "description": "Logical section grouping in Admin Panel."
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Human-readable field label for the Admin Panel."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of document creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update."
+        }
+      },
+      "required": ["key", "en", "fr", "group", "label", "createdAt", "updatedAt"]
+    },
+    "SiteFile": {
+      "title": "SiteFile",
+      "description": "Stored media asset, PDF guide, or linked file managed via the Admin Panel.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "description": "Display filename."
+        },
+        "mimeType": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "MIME type (e.g., image/jpeg, application/pdf)."
+        },
+        "category": {
+          "type": "string",
+          "maxLength": 32,
+          "enum": ["image", "document", "media", "asset"],
+          "description": "File category filter."
+        },
+        "storageMode": {
+          "type": "string",
+          "maxLength": 16,
+          "enum": ["inline", "external"],
+          "description": "Whether the payload is inline base64 dataUrl or an external URL."
+        },
+        "dataUrl": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 750000,
+          "description": "Base64 data URL (capped below Firestore 1MB limit) when storageMode is inline."
+        },
+        "externalUrl": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2000,
+          "description": "External file HTTPS URL when storageMode is external."
+        },
+        "sizeBytes": {
+          "type": "integer",
+          "description": "Byte size of the stored or linked file."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 500,
+          "description": "Optional notes describing usage of this file."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last modification."
+        }
+      },
+      "required": [
+        "name",
+        "mimeType",
+        "category",
+        "storageMode",
+        "dataUrl",
+        "externalUrl",
+        "sizeBytes",
+        "description",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SiteLink": {
+      "title": "SiteLink",
+      "description": "Dynamic navigation, footer, or promotional link managed via the Admin Panel.",
+      "type": "object",
+      "properties": {
+        "labelEn": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Link label in English."
+        },
+        "labelFr": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Link label in French."
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "description": "Target HTTP/HTTPS URL or internal anchor."
+        },
+        "placement": {
+          "type": "string",
+          "maxLength": 32,
+          "enum": [
+            "header",
+            "footer_company",
+            "footer_services",
+            "footer_resources",
+            "footer_legal",
+            "custom_bar"
+          ],
+          "description": "Where on Safarihoo this link appears."
+        },
+        "openInNewTab": {
+          "type": "boolean",
+          "description": "Whether clicking opens in a new browser tab."
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the link is visible to visitors."
+        },
+        "order": {
+          "type": "integer",
+          "description": "Sort priority index."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 300,
+          "description": "Internal note or tooltip."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last modification."
+        }
+      },
+      "required": [
+        "labelEn",
+        "labelFr",
+        "url",
+        "placement",
+        "openInNewTab",
+        "active",
+        "order",
+        "description",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SiteAttraction": {
+      "title": "SiteAttraction",
+      "description": "Curated attraction or tour displayed in the Hotels & Attractions section.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Tour title in English."
+        },
+        "titleFr": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Tour title in French."
+        },
+        "price": {
+          "type": "number",
+          "description": "Base tour price in USD."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600,
+          "description": "Tour description in English."
+        },
+        "descriptionFr": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600,
+          "description": "Tour description in French."
+        },
+        "tag": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Short tag in English."
+        },
+        "tagFr": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Short tag in French."
+        },
+        "duration": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Duration label in English."
+        },
+        "durationFr": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Duration label in French."
+        },
+        "category": {
+          "type": "string",
+          "maxLength": 24,
+          "enum": ["Adventure", "Culture", "Wellness"],
+          "description": "Attraction category."
+        },
+        "location": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Location label."
+        },
+        "imageUrl": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 750000,
+          "description": "Image URL or inline data URL."
+        },
+        "bookingUrl": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2000,
+          "description": "Destination booking or affiliate link."
+        },
+        "highlights": {
+          "type": "array",
+          "description": "Up to 8 English highlights."
+        },
+        "highlightsFr": {
+          "type": "array",
+          "description": "Up to 8 French highlights."
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the attraction appears publicly."
+        },
+        "order": {
+          "type": "integer",
+          "description": "Display order in carousel."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last modification."
+        }
+      },
+      "required": [
+        "title",
+        "titleFr",
+        "price",
+        "description",
+        "descriptionFr",
+        "tag",
+        "tagFr",
+        "duration",
+        "durationFr",
+        "category",
+        "location",
+        "imageUrl",
+        "bookingUrl",
+        "highlights",
+        "highlightsFr",
+        "active",
+        "order",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/site_content/{contentId}": {
+      "schema": { "$ref": "#/entities/SiteContent" },
+      "description": "Bilingual copy overrides and dynamic site settings."
+    },
+    "/site_files/{fileId}": {
+      "schema": { "$ref": "#/entities/SiteFile" },
+      "description": "Uploaded or externally linked files managed from the Admin Panel."
+    },
+    "/site_links/{linkId}": {
+      "schema": { "$ref": "#/entities/SiteLink" },
+      "description": "Navigation, footer, and promotional links managed from the Admin Panel."
+    },
+    "/site_attractions/{tourId}": {
+      "schema": { "$ref": "#/entities/SiteAttraction" },
+      "description": "Dynamic tours and attractions for the Hotels & Attractions experience."
+    }
+  }
+}
