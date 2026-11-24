@@ -3,7 +3,7 @@ import { HelpCircle, ChevronDown, Search, MessageSquare } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 export const FaqPage: React.FC<{ onOpenContact?: () => void }> = ({ onOpenContact }) => {
-  const { language } = useLanguage();
+  const { language, t: cmsT } = useLanguage();
   const isFr = language === 'FR';
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -11,10 +11,8 @@ export const FaqPage: React.FC<{ onOpenContact?: () => void }> = ({ onOpenContac
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const t = {
-    title: isFr ? 'Foire Aux Questions' : 'Frequently Asked Questions',
-    subtitle: isFr
-      ? 'Trouvez des réponses claires à vos questions sur la recherche de vols, les réservations d’hôtels, la location de véhicules et l’indemnisation de vol AirHelp sur Safarihoo.'
-      : 'Find answers to common questions about searching, booking, passenger compensation rights, and managing your journeys on Safarihoo.',
+    title: cmsT('faq.title'),
+    subtitle: cmsT('faq.subtitle'),
     searchPlaceholder: isFr
       ? 'Rechercher une question, mot-clé, thème (ex. bagages, AirHelp, remboursement)...'
       : 'Search question, keyword, topic (e.g. baggage, AirHelp, refund)...',
@@ -28,10 +26,8 @@ export const FaqPage: React.FC<{ onOpenContact?: () => void }> = ({ onOpenContac
       isFr
         ? `Aucune question trouvée pour « ${q} ». Essayez un autre mot-clé ou contactez notre équipe support.`
         : `No matching questions found for "${q}". Try a different keyword or contact our support team.`,
-    stillQuestions: isFr ? 'Vous avez encore des questions ?' : 'Still have questions?',
-    supportDesc: isFr
-      ? 'Notre équipe d’assistance internationale est disponible 24h/24 et 7j/7 pour vous orienter dans vos réservations et vos voyages.'
-      : 'Our global support team is available 24 hours a day, 7 days a week to help with your reservations and travel inquiries.',
+    stillQuestions: cmsT('faq.stillQuestions'),
+    supportDesc: cmsT('faq.supportDesc'),
     contactBtn: isFr ? 'Contacter l’assistance' : 'Contact Support',
   };
 

@@ -6,13 +6,13 @@
 - **Warning**: Because unauthenticated writes are enabled per the user's "sans auth" requirement, strict structural validation, strict key whitelisting (`hasAll` + `hasOnly`), size caps (< 750 KB per document payload), immutable `createdAt`, and server-enforced timestamps (`request.time`) are enforced on every write. Users should enable Firebase Auth before broad public production deployment if multi-user/untrusted access is exposed.
 
 ## 2. Data Invariants
-1. Every document ID across `site_content`, `site_files`, `site_links`, and `site_attractions` MUST match `^[a-zA-Z0-9_-]+$` and be <= 128 characters.
+1. Every document ID across `site_content`, `site_files`, `site_links`, `site_attractions`, `site_destinations`, and `site_reviews` MUST match `^[a-zA-Z0-9_-]+$` and be <= 128 characters.
 2. Every document write MUST contain exact blueprint fields only — no shadow/ghost fields (`keys().hasOnly(...)`).
 3. Every `string` field has explicit `.size()` min/max bounds matching `firebase-blueprint.json`.
 4. `site_files.dataUrl` is capped at `750000` chars (~750 KB) to guarantee documents never breach Firestore's 1 MB document limit. `sizeBytes` must be an integer between `0` and `50000000`.
 5. `site_files.storageMode` MUST be `'inline'` or `'external'`; when `'inline'`, `dataUrl` must be non-empty; when `'external'`, `externalUrl` must be non-empty.
 6. `site_links.url` must start with `https://`, `http://`, `/`, or `#` (blocks `javascript:` XSS URI injection).
-7. `site_attractions.highlights` and `highlightsFr` arrays are strictly capped at `<= 8` entries and validated at index 0 when non-empty.
+7. `site_attractions.highlights` and `highlightsFr` arrays are strictly capped at `<= 8` entries; `site_destinations.categories` is capped at 1..4 valid categories and `thumbnails` at 1..6 validated URLs/thumbnails; `site_reviews.rating` is integer 1..5.
 8. `createdAt == request.time` on create; `createdAt` is immutable on update; `updatedAt == request.time` on create and update.
 
 ## 3. The "Dirty Dozen" Payloads (Expected `PERMISSION_DENIED`)

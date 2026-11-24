@@ -9,31 +9,23 @@ interface AboutPageProps {
 }
 
 export const AboutPage: React.FC<AboutPageProps> = ({ onNavigateFlights }) => {
-  const { language } = useLanguage();
+  const { language, t: cmsT } = useLanguage();
   const isFr = language === 'FR';
 
   const t = {
-    title: isFr
-      ? 'Une exploration intelligente au service des voyageurs du monde entier'
-      : 'Empowering Global Travelers with Intelligent Exploration',
-    subtitle: isFr
-      ? "Safarihoo est un métamoteur de recherche de voyages nouvelle génération conçu pour connecter les passionnés d'aventure à des millions de vols, d'hôtels d'exception, de locations de voitures flexibles et d'indemnisations de vol simples à travers le globe."
-      : 'Safarihoo is a next-generation travel meta-search engine built to connect wanderlust seekers with millions of flights, hand-picked hotels, flexible car rentals, and hassle-free flight compensation across the globe.',
+    title: cmsT('about.title'),
+    subtitle: cmsT('about.subtitle'),
     stat1: isFr ? 'Compagnies comparées' : 'Airlines Compared',
     stat2: isFr ? 'Hôtels & Complexes' : 'Hotels & Resorts',
     stat3: isFr ? 'Pays couverts' : 'Countries Covered',
     stat4: isFr ? 'Indemnité max AirHelp' : 'AirHelp Max Claim',
-    missionTitle: isFr ? 'Notre Mission' : 'Our Mission',
-    missionDesc: isFr
-      ? "Éliminer les frictions de la planification de voyage moderne. Nous agrégeons les tarifs vérifiés des compagnies et voyagistes majeurs au sein d'une expérience ultra-rapide, transparente et intuitive — sans aucun frais de réservation caché."
-      : 'To eliminate the friction of modern travel planning. We aggregate verified fares from premier travel suppliers and airlines into one ultra-fast, transparent, and user-friendly experience — with zero hidden booking fees.',
+    missionTitle: cmsT('about.missionTitle'),
+    missionDesc: cmsT('about.missionDesc'),
     missionCheck1: isFr ? 'Tarifs en temps réel avec prise en charge multidevise' : 'Real-time live pricing with multi-currency support',
     missionCheck2: isFr ? 'Redirection directe vers les voyagistes et compagnies officiels' : 'Direct routing to trusted official providers & airlines',
     missionCheck3: isFr ? 'Algorithme de comparaison indépendant et impartial' : 'Independent unbiased comparison algorithm',
-    visionTitle: isFr ? 'Notre Vision Globale' : 'Our Global Vision',
-    visionDesc: isFr
-      ? "Nous bâtissons un univers où chaque voyageur accède instantanément à une planification équitable et transparente, appuyée par la défense des droits des passagers et des recommandations fiables."
-      : 'We envision a world where every traveler has instant access to fair, transparent journey planning, backed by passenger rights protection and AI-assisted destination insights.',
+    visionTitle: cmsT('about.visionTitle'),
+    visionDesc: cmsT('about.visionDesc'),
     visionCheck1: isFr ? "Partenariat d'indemnisation de vol direct avec AirHelp" : 'Seamless flight compensation partnerships with AirHelp',
     visionCheck2: isFr ? 'Itinéraires multimodaux complets (Avion, Train, Route)' : 'Comprehensive multi-modal itineraries (Air, Rail, Road)',
     visionCheck3: isFr ? 'Sélections et guides de voyage inspirés par la communauté' : 'Community-driven destination curations & insights',
@@ -50,10 +42,8 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigateFlights }) => {
     val3Desc: isFr
       ? "De la recherche des meilleures offres à l'indemnisation en cas de perturbation de vol, nous vous accompagnons partout."
       : 'From discovering deals to flight delay compensation and 24/7 travel support, we are with you at every step.',
-    ctaTitle: isFr ? 'Prêt à vivre votre prochaine aventure ?' : 'Ready to Start Your Next Adventure?',
-    ctaSubtitle: isFr
-      ? "Comparez les vols pas chers, dénichez des hôtels de luxe ou louez une voiture au meilleur tarif garanti dès maintenant."
-      : 'Compare cheap flights, find luxury hotel bargains, or book rental cars with the best price guarantee today.',
+    ctaTitle: cmsT('about.ctaTitle'),
+    ctaSubtitle: cmsT('about.ctaSubtitle'),
     ctaButton: isFr ? 'Rechercher des vols & hôtels' : 'Search Flights & Hotels',
   };
 

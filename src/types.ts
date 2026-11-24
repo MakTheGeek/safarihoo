@@ -42,6 +42,10 @@ export type CmsContentGroup =
   | 'cars'
   | 'airhelp'
   | 'trust'
+  | 'destinations'
+  | 'reviews'
+  | 'about'
+  | 'faq'
   | 'footer'
   | 'attractions'
   | 'contact'
@@ -121,3 +125,60 @@ export interface SiteAttractionItem {
   createdAt?: unknown;
   updatedAt?: unknown;
 }
+
+export type DestinationCategory = 'Cities' | 'Historic' | 'Beach' | 'Wonders';
+
+export interface SiteDestinationItem {
+  id: string;
+  title: string;
+  titleFr: string;
+  name: string;
+  location: string;
+  country: string;
+  categories: DestinationCategory[];
+  mainImage: string;
+  thumbnails: string[];
+  distance: string;
+  temp: string;
+  rating: string;
+  price: string;
+  tag: string;
+  tagFr: string;
+  description: string;
+  descriptionFr: string;
+  bookingUrl: string;
+  active: boolean;
+  order: number;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+}
+
+export type ReviewCategory = 'flights' | 'hotels' | 'cars' | 'airhelp';
+
+export type ReviewCardStyle =
+  | 'quote-top'
+  | 'avatar-top-stars'
+  | 'headline-stars'
+  | 'quote-bottom-avatar'
+  | 'cursive-signature'
+  | 'headline-avatars';
+
+export interface SiteReviewItem {
+  id: string;
+  name: string;
+  role: string;
+  roleFr: string;
+  headline: string;
+  headlineFr: string;
+  text: string;
+  textFr: string;
+  rating: number;
+  category: ReviewCategory;
+  cardStyle: ReviewCardStyle;
+  avatar: string;
+  active: boolean;
+  order: number;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+}
+

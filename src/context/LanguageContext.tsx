@@ -73,6 +73,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'dest.card1.title2': 'Favorite Journey',
     'dest.card1.sub': "Let's Make Our Life Better",
     'dest.card1.go': 'Go',
+    'dest.card1.image':
+      'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=1000&q=85',
     'dest.card2.discover': 'Discover',
     'dest.card2.scroll': 'Scroll & explore all places',
     'dest.card2.top': 'Top Destinations',
@@ -83,6 +85,35 @@ export const translations: Record<Language, Record<string, string>> = {
     'dest.card3.desc': 'Description',
     'dest.card3.book': 'Book Trip',
     'dest.card3.total': 'Total Price',
+
+    // Reviews Section
+    'reviews.title': 'What Our Travelers Say',
+    'reviews.subtitle':
+      'Explore genuine experiences from over 10 million adventurers, families, and frequent flyers saving on airfares, hotels, and journeys worldwide.',
+    'reviews.ratingPill': '4.9/5 Average Rating • Over 120,000 Verified Reviews',
+    'reviews.btnWriteReview': 'Write a Review',
+
+    // About Page
+    'about.title': 'Empowering Global Travelers with Intelligent Exploration',
+    'about.subtitle':
+      'Safarihoo is a next-generation travel meta-search engine built to connect wanderlust seekers with millions of flights, hand-picked hotels, flexible car rentals, and hassle-free flight compensation across the globe.',
+    'about.missionTitle': 'Our Mission',
+    'about.missionDesc':
+      'To eliminate the friction of modern travel planning. We aggregate verified fares from premier travel suppliers and airlines into one ultra-fast, transparent, and user-friendly experience — with zero hidden booking fees.',
+    'about.visionTitle': 'Our Global Vision',
+    'about.visionDesc':
+      'We envision a world where every traveler has instant access to fair, transparent journey planning, backed by passenger rights protection and AI-assisted destination insights.',
+    'about.ctaTitle': 'Ready to Start Your Next Adventure?',
+    'about.ctaSubtitle':
+      'Compare cheap flights, find luxury hotel bargains, or book rental cars with the best price guarantee today.',
+
+    // FAQ Page
+    'faq.title': 'Frequently Asked Questions',
+    'faq.subtitle':
+      'Find answers to common questions about searching, booking, passenger compensation rights, and managing your journeys on Safarihoo.',
+    'faq.stillQuestions': 'Still have questions?',
+    'faq.supportDesc':
+      'Our global support team is available 24 hours a day, 7 days a week to help with your reservations and travel inquiries.',
 
     // Contact
     'contact.email': 'support@safarihoo.com',
@@ -180,6 +211,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'dest.card1.title2': 'Prochain Voyage',
     'dest.card1.sub': 'Sublimez vos aventures au quotidien',
     'dest.card1.go': 'Partir',
+    'dest.card1.image':
+      'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?auto=format&fit=crop&w=1000&q=85',
     'dest.card2.discover': 'Découvrir',
     'dest.card2.scroll': 'Faites défiler et explorez',
     'dest.card2.top': 'Top Destinations',
@@ -190,6 +223,35 @@ export const translations: Record<Language, Record<string, string>> = {
     'dest.card3.desc': 'Description',
     'dest.card3.book': 'Réserver',
     'dest.card3.total': 'Prix Total',
+
+    // Reviews Section
+    'reviews.title': 'Ce Que Disent Nos Voyageurs',
+    'reviews.subtitle':
+      'Découvrez les retours d’expérience de plus de 10 millions de globe-trotters, familles et professionnels qui économisent sur leurs séjours et leurs vols avec Safarihoo.',
+    'reviews.ratingPill': 'Note globale 4.9/5 • Plus de 120 000 avis vérifiés',
+    'reviews.btnWriteReview': 'Donner mon avis',
+
+    // About Page
+    'about.title': 'Une exploration intelligente au service des voyageurs du monde entier',
+    'about.subtitle':
+      "Safarihoo est un métamoteur de recherche de voyages nouvelle génération conçu pour connecter les passionnés d'aventure à des millions de vols, d'hôtels d'exception, de locations de voitures flexibles et d'indemnisations de vol simples à travers le globe.",
+    'about.missionTitle': 'Notre Mission',
+    'about.missionDesc':
+      "Éliminer les frictions de la planification de voyage moderne. Nous agrégeons les tarifs vérifiés des compagnies et voyagistes majeurs au sein d'une expérience ultra-rapide, transparente et intuitive — sans aucun frais de réservation caché.",
+    'about.visionTitle': 'Notre Vision Globale',
+    'about.visionDesc':
+      "Nous bâtissons un univers où chaque voyageur accède instantanément à une planification équitable et transparente, appuyée par la défense des droits des passagers et des recommandations fiables.",
+    'about.ctaTitle': 'Prêt à vivre votre prochaine aventure ?',
+    'about.ctaSubtitle':
+      "Comparez les vols pas chers, dénichez des hôtels de luxe ou louez une voiture au meilleur tarif garanti dès maintenant.",
+
+    // FAQ Page
+    'faq.title': 'Foire Aux Questions',
+    'faq.subtitle':
+      'Trouvez des réponses claires à vos questions sur la recherche de vols, les réservations d’hôtels, la location de véhicules et l’indemnisation de vol AirHelp sur Safarihoo.',
+    'faq.stillQuestions': 'Vous avez encore des questions ?',
+    'faq.supportDesc':
+      'Notre équipe d’assistance internationale est disponible 24h/24 et 7j/7 pour vous orienter dans vos réservations et vos voyages.',
 
     // Contact
     'contact.email': 'support@safarihoo.com',

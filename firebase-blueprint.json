@@ -33,6 +33,10 @@
             "cars",
             "airhelp",
             "trust",
+            "destinations",
+            "reviews",
+            "about",
+            "faq",
             "footer",
             "attractions",
             "contact",
@@ -341,6 +345,265 @@
         "createdAt",
         "updatedAt"
       ]
+    },
+    "SiteDestination": {
+      "title": "SiteDestination",
+      "description": "Curated destination showcased in the Best Destinations 3-card interactive section.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Detail card title in English."
+        },
+        "titleFr": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Detail card title in French."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Short destination name shown on carousel cards."
+        },
+        "location": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "City and country display label."
+        },
+        "country": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Country name."
+        },
+        "categories": {
+          "type": "array",
+          "description": "Up to 4 category tags (Cities, Historic, Beach, Wonders)."
+        },
+        "mainImage": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 750000,
+          "description": "Primary destination photo URL or inline data URL."
+        },
+        "thumbnails": {
+          "type": "array",
+          "description": "1 to 6 gallery thumbnail URLs or inline data URLs."
+        },
+        "distance": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "description": "Distance display metric (e.g., 1,200Km)."
+        },
+        "temp": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 30,
+          "description": "Temperature metric (e.g., 24° C)."
+        },
+        "rating": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16,
+          "description": "Rating string (e.g., 4.9)."
+        },
+        "price": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32,
+          "description": "Formatted starting price (e.g., $1,180)."
+        },
+        "tag": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 40,
+          "description": "Short tag badge in English."
+        },
+        "tagFr": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 40,
+          "description": "Short tag badge in French."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600,
+          "description": "Destination summary in English."
+        },
+        "descriptionFr": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600,
+          "description": "Destination summary in French."
+        },
+        "bookingUrl": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2000,
+          "description": "Optional external booking URL."
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the destination appears publicly."
+        },
+        "order": {
+          "type": "integer",
+          "description": "Display sort index."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update."
+        }
+      },
+      "required": [
+        "title",
+        "titleFr",
+        "name",
+        "location",
+        "country",
+        "categories",
+        "mainImage",
+        "thumbnails",
+        "distance",
+        "temp",
+        "rating",
+        "price",
+        "tag",
+        "tagFr",
+        "description",
+        "descriptionFr",
+        "bookingUrl",
+        "active",
+        "order",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SiteReview": {
+      "title": "SiteReview",
+      "description": "Traveler testimonial displayed in the Reviews section.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Reviewer display name."
+        },
+        "role": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 120,
+          "description": "Reviewer subtitle/role/city in English."
+        },
+        "roleFr": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 120,
+          "description": "Reviewer subtitle/role/city in French."
+        },
+        "headline": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 120,
+          "description": "Optional bold review headline in English."
+        },
+        "headlineFr": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 120,
+          "description": "Optional bold review headline in French."
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 800,
+          "description": "Review body in English."
+        },
+        "textFr": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 800,
+          "description": "Review body in French."
+        },
+        "rating": {
+          "type": "integer",
+          "description": "Star rating from 1 to 5."
+        },
+        "category": {
+          "type": "string",
+          "maxLength": 24,
+          "enum": ["flights", "hotels", "cars", "airhelp"],
+          "description": "Travel service category."
+        },
+        "cardStyle": {
+          "type": "string",
+          "maxLength": 32,
+          "enum": [
+            "quote-top",
+            "avatar-top-stars",
+            "headline-stars",
+            "quote-bottom-avatar",
+            "cursive-signature",
+            "headline-avatars"
+          ],
+          "description": "Visual card layout preset."
+        },
+        "avatar": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 750000,
+          "description": "Avatar photo URL or inline data URL."
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the review appears publicly."
+        },
+        "order": {
+          "type": "integer",
+          "description": "Display sort index."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update."
+        }
+      },
+      "required": [
+        "name",
+        "role",
+        "roleFr",
+        "headline",
+        "headlineFr",
+        "text",
+        "textFr",
+        "rating",
+        "category",
+        "cardStyle",
+        "avatar",
+        "active",
+        "order",
+        "createdAt",
+        "updatedAt"
+      ]
     }
   },
   "firestore": {
@@ -359,6 +622,14 @@
     "/site_attractions/{tourId}": {
       "schema": { "$ref": "#/entities/SiteAttraction" },
       "description": "Dynamic tours and attractions for the Hotels & Attractions experience."
+    },
+    "/site_destinations/{destId}": {
+      "schema": { "$ref": "#/entities/SiteDestination" },
+      "description": "Curated destinations for the Best Destinations showcase."
+    },
+    "/site_reviews/{reviewId}": {
+      "schema": { "$ref": "#/entities/SiteReview" },
+      "description": "Traveler reviews displayed in the Reviews section."
     }
   }
 }

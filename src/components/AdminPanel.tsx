@@ -22,6 +22,14 @@ import {
   File as FileIcon,
   Save,
   Sparkles,
+  Globe,
+  Star,
+  Lock,
+  Unlock,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  KeyRound,
 } from 'lucide-react';
 import { useCms } from '../context/CmsContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -29,14 +37,27 @@ import { EDITABLE_CONTENT_FIELDS } from '../data/cmsDefaults';
 import {
   AttractionCategory,
   CmsContentGroup,
+  DestinationCategory,
+  ReviewCardStyle,
+  ReviewCategory,
   SiteAttractionItem,
+  SiteDestinationItem,
   SiteFileCategory,
   SiteFileItem,
   SiteLinkItem,
   SiteLinkPlacement,
+  SiteReviewItem,
 } from '../types';
 
-type AdminTab = 'overview' | 'content' | 'files' | 'links' | 'attractions';
+type AdminTab =
+  | 'overview'
+  | 'content'
+  | 'destinations'
+  | 'reviews'
+  | 'attractions'
+  | 'files'
+  | 'links'
+  | 'security';
 
 interface AdminPanelProps {
   onExitAdmin: () => void;
@@ -55,13 +76,28 @@ const GROUP_LABELS: Record<CmsContentGroup, { en: string; fr: string }> = {
   hero: { en: 'Flights Hero', fr: 'Hero Vols' },
   hotels: { en: 'Hotels & Attractions Hero', fr: 'Hero Hôtels & Attractions' },
   attractions: { en: 'Attractions Editorial', fr: 'Éditorial Attractions' },
+  destinations: { en: 'Best Destinations Copy', fr: 'Textes Best Destinations' },
+  reviews: { en: 'Reviews Section Copy', fr: 'Textes Avis Voyageurs' },
   cars: { en: 'Cars Hero', fr: 'Hero Voitures' },
   airhelp: { en: 'AirHelp Hero', fr: 'Hero AirHelp' },
   trust: { en: 'Trust Badges', fr: 'Badges Confiance' },
+  about: { en: 'About Us Page', fr: 'Page À propos' },
+  faq: { en: 'FAQ Page', fr: 'Page FAQ' },
   contact: { en: 'Contact Info', fr: 'Infos Contact' },
   footer: { en: 'Footer Copy', fr: 'Textes Footer' },
   custom: { en: 'Custom Keys', fr: 'Champs Personnalisés' },
 };
+
+const DEST_CATEGORIES: DestinationCategory[] = ['Cities', 'Historic', 'Beach', 'Wonders'];
+
+const REVIEW_CARD_STYLES: { value: ReviewCardStyle; labelEn: string; labelFr: string }[] = [
+  { value: 'quote-top', labelEn: 'Quote Badge + Bottom Author', labelFr: 'Badge Citation + Auteur en bas' },
+  { value: 'avatar-top-stars', labelEn: 'Top Avatar + 5 Stars + Headline', labelFr: 'Avatar en haut + Étoiles + Titre' },
+  { value: 'headline-stars', labelEn: 'Centered Headline + Stars', labelFr: 'Titre centré + Étoiles' },
+  { value: 'quote-bottom-avatar', labelEn: 'Left Quote + Bottom Avatar', labelFr: 'Citation gauche + Avatar en bas' },
+  { value: 'cursive-signature', labelEn: 'Stars + Cursive Signature', labelFr: 'Étoiles + Signature manuscrite' },
+  { value: 'headline-avatars', labelEn: 'Headline + Group Avatars', labelFr: 'Titre + Groupe d’avatars' },
+];
 
 function formatBytes(bytes: number): string {
   if (!bytes || bytes <= 0) return '0 KB';
@@ -127,6 +163,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
     storedAttractions,
     attractions,
     isUsingCustomAttractions,
+    storedDestinations,
+    destinations,
+    isUsingCustomDestinations,
+    storedReviews,
+    reviews,
+    isUsingCustomReviews,
     isLoading,
     isConnected,
     lastError,
@@ -141,6 +183,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
     saveAttractionItem,
     deleteAttractionItem,
     importDefaultAttractions,
+    saveDestinationItem,
+    deleteDestinationItem,
+    importDefaultDestinations,
+    saveReviewItem,
+    deleteReviewItem,
+    importDefaultReviews,
   } = useCms();
 
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
@@ -216,6 +264,108 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
     active: true,
     order: 0,
   });
+
+  // Destinations state
+  const [destSearch, setDestSearch] = useState('');
+  const [showDestModal, setShowDestModal] = useState(false);
+  const [editingDestId, setEditingDestId] = useState<string | null>(null);
+  const [destForm, setDestForm] = useState({
+    name: '',
+    title: '',
+    titleFr: '',
+    location: '',
+    country: '',
+    categories: ['Cities'] as DestinationCategory[],
+    mainImage: '',
+    thumbnailsText: '',
+    distance: '1,200Km',
+    temp: '24° C',
+    rating: '4.9',
+    price: '$1,190',
+    tag: 'Trending',
+    tagFr: 'Tendance',
+    description: '',
+    descriptionFr: '',
+    bookingUrl: '',
+    active: true,
+    order: 0,
+  });
+
+  // Reviews state
+  const [reviewSearch, setReviewSearch] = useState('');
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
+  const [reviewForm, setReviewForm] = useState({
+    name: '',
+    role: '',
+    roleFr: '',
+    headline: '',
+    headlineFr: '',
+    text: '',
+    textFr: '',
+    rating: 5,
+    category: 'flights' as ReviewCategory,
+    cardStyle: 'quote-top' as ReviewCardStyle,
+    avatar: '',
+    active: true,
+    order: 0,
+  });
+
+  // Password Lock state (Bearer token strictly kept in React memory, never in localStorage)
+  const [adminToken, setAdminToken] = useState<string | null>(null);
+  const [lockChecking, setLockChecking] = useState(true);
+  const [lockServerUnavailable, setLockServerUnavailable] = useState(false);
+  const [lockStatus, setLockStatus] = useState({
+    locked: false,
+    hasPassword: false,
+    managedByEnv: false,
+    authenticated: true,
+  });
+  const [unlockPasswordInput, setUnlockPasswordInput] = useState('');
+  const [showUnlockPassword, setShowUnlockPassword] = useState(false);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
+  const [unlockBusy, setUnlockBusy] = useState(false);
+
+  const [securityForm, setSecurityForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [showSecurityPasswords, setShowSecurityPasswords] = useState(false);
+
+  React.useEffect(() => {
+    let active = true;
+    const checkStatus = async () => {
+      try {
+        const res = await fetch('/api/admin/auth/status', {
+          headers: adminToken ? { Authorization: `Bearer ${adminToken}` } : undefined,
+        });
+        const contentType = res.headers.get('content-type') || '';
+        if (!res.ok || !contentType.includes('application/json')) {
+          if (active) setLockServerUnavailable(true);
+          return;
+        }
+        const data = (await res.json()) as typeof lockStatus;
+        if (active) {
+          setLockServerUnavailable(false);
+          setLockStatus({
+            locked: Boolean(data.locked),
+            hasPassword: Boolean(data.hasPassword),
+            managedByEnv: Boolean(data.managedByEnv),
+            authenticated: Boolean(data.authenticated),
+          });
+        }
+      } catch {
+        if (active) setLockServerUnavailable(true);
+      } finally {
+        if (active) setLockChecking(false);
+      }
+    };
+    void checkStatus();
+    return () => {
+      active = false;
+    };
+  }, [adminToken]);
 
   const notify = (type: 'success' | 'error', text: string) => {
     setStatusMessage({ type, text });
@@ -306,6 +456,34 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
         a.location.toLowerCase().includes(q)
     );
   }, [isUsingCustomAttractions, storedAttractions, attractions, attractionSearch]);
+
+  const filteredDestinations = useMemo(() => {
+    const list = isUsingCustomDestinations ? storedDestinations : destinations;
+    const q = destSearch.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter(
+      (d) =>
+        d.name.toLowerCase().includes(q) ||
+        d.title.toLowerCase().includes(q) ||
+        d.titleFr.toLowerCase().includes(q) ||
+        d.location.toLowerCase().includes(q) ||
+        d.country.toLowerCase().includes(q)
+    );
+  }, [isUsingCustomDestinations, storedDestinations, destinations, destSearch]);
+
+  const filteredReviews = useMemo(() => {
+    const list = isUsingCustomReviews ? storedReviews : reviews;
+    const q = reviewSearch.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter(
+      (r) =>
+        r.name.toLowerCase().includes(q) ||
+        r.text.toLowerCase().includes(q) ||
+        r.textFr.toLowerCase().includes(q) ||
+        r.headline.toLowerCase().includes(q) ||
+        r.category.toLowerCase().includes(q)
+    );
+  }, [isUsingCustomReviews, storedReviews, reviews, reviewSearch]);
 
   const totalStorageBytes = useMemo(
     () => files.reduce((acc, f) => acc + (f.sizeBytes || 0), 0),
@@ -569,6 +747,295 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
     }
   };
 
+  const openDestModal = (dest?: SiteDestinationItem) => {
+    if (dest) {
+      setEditingDestId(dest.id);
+      setDestForm({
+        name: dest.name,
+        title: dest.title,
+        titleFr: dest.titleFr,
+        location: dest.location,
+        country: dest.country,
+        categories: dest.categories,
+        mainImage: dest.mainImage,
+        thumbnailsText: dest.thumbnails.join('\n'),
+        distance: dest.distance,
+        temp: dest.temp,
+        rating: dest.rating,
+        price: dest.price,
+        tag: dest.tag,
+        tagFr: dest.tagFr,
+        description: dest.description,
+        descriptionFr: dest.descriptionFr,
+        bookingUrl: dest.bookingUrl,
+        active: dest.active,
+        order: dest.order,
+      });
+    } else {
+      setEditingDestId(null);
+      setDestForm({
+        name: '',
+        title: '',
+        titleFr: '',
+        location: '',
+        country: '',
+        categories: ['Cities'],
+        mainImage: '',
+        thumbnailsText: '',
+        distance: '1,200Km',
+        temp: '24° C',
+        rating: '4.9',
+        price: '$1,190',
+        tag: 'Trending',
+        tagFr: 'Tendance',
+        description: '',
+        descriptionFr: '',
+        bookingUrl: '',
+        active: true,
+        order: storedDestinations.length,
+      });
+    }
+    setShowDestModal(true);
+  };
+
+  const handleSaveDestination = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusyAction('save-dest');
+    try {
+      const thumbnails = destForm.thumbnailsText
+        .split('\n')
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .slice(0, 6);
+
+      await saveDestinationItem(editingDestId, {
+        name: destForm.name,
+        title: destForm.title || destForm.name,
+        titleFr: destForm.titleFr || destForm.title || destForm.name,
+        location: destForm.location || destForm.name,
+        country: destForm.country || destForm.location,
+        categories: destForm.categories.length > 0 ? destForm.categories : ['Cities'],
+        mainImage: destForm.mainImage,
+        thumbnails: thumbnails.length > 0 ? thumbnails : [destForm.mainImage],
+        distance: destForm.distance,
+        temp: destForm.temp,
+        rating: destForm.rating,
+        price: destForm.price,
+        tag: destForm.tag,
+        tagFr: destForm.tagFr || destForm.tag,
+        description: destForm.description,
+        descriptionFr: destForm.descriptionFr || destForm.description,
+        bookingUrl: destForm.bookingUrl,
+        active: destForm.active,
+        order: Number(destForm.order),
+      });
+      setShowDestModal(false);
+      notify(
+        'success',
+        isFr ? 'Destination enregistrée dans Firebase.' : 'Destination saved to Firebase.'
+      );
+    } catch (err) {
+      notify('error', err instanceof Error ? err.message : 'Erreur sur destination.');
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const openReviewModal = (review?: SiteReviewItem) => {
+    if (review) {
+      setEditingReviewId(review.id);
+      setReviewForm({
+        name: review.name,
+        role: review.role,
+        roleFr: review.roleFr,
+        headline: review.headline,
+        headlineFr: review.headlineFr,
+        text: review.text,
+        textFr: review.textFr,
+        rating: review.rating,
+        category: review.category,
+        cardStyle: review.cardStyle,
+        avatar: review.avatar,
+        active: review.active,
+        order: review.order,
+      });
+    } else {
+      setEditingReviewId(null);
+      setReviewForm({
+        name: '',
+        role: '',
+        roleFr: '',
+        headline: '',
+        headlineFr: '',
+        text: '',
+        textFr: '',
+        rating: 5,
+        category: 'flights',
+        cardStyle: 'quote-top',
+        avatar:
+          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+        active: true,
+        order: storedReviews.length,
+      });
+    }
+    setShowReviewModal(true);
+  };
+
+  const handleSaveReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusyAction('save-review');
+    try {
+      await saveReviewItem(editingReviewId, {
+        name: reviewForm.name,
+        role: reviewForm.role,
+        roleFr: reviewForm.roleFr || reviewForm.role,
+        headline: reviewForm.headline,
+        headlineFr: reviewForm.headlineFr || reviewForm.headline,
+        text: reviewForm.text,
+        textFr: reviewForm.textFr || reviewForm.text,
+        rating: Number(reviewForm.rating),
+        category: reviewForm.category,
+        cardStyle: reviewForm.cardStyle,
+        avatar: reviewForm.avatar,
+        active: reviewForm.active,
+        order: Number(reviewForm.order),
+      });
+      setShowReviewModal(false);
+      notify('success', isFr ? 'Avis enregistré dans Firebase.' : 'Review saved to Firebase.');
+    } catch (err) {
+      notify('error', err instanceof Error ? err.message : 'Erreur sur avis.');
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handleUnlockSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUnlockError(null);
+    setUnlockBusy(true);
+    try {
+      const res = await fetch('/api/admin/auth/unlock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: unlockPasswordInput }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setUnlockError(data.error || (isFr ? 'Mot de passe incorrect.' : 'Incorrect password.'));
+        return;
+      }
+      setAdminToken(data.token || null);
+      setLockStatus((prev) => ({ ...prev, authenticated: true }));
+      setUnlockPasswordInput('');
+    } catch {
+      setUnlockError(
+        isFr ? 'Impossible de joindre le serveur de vérification.' : 'Unable to reach auth server.'
+      );
+    } finally {
+      setUnlockBusy(false);
+    }
+  };
+
+  const handleConfigurePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (securityForm.newPassword.length < 6) {
+      notify(
+        'error',
+        isFr
+          ? 'Le mot de passe doit contenir au moins 6 caractères.'
+          : 'Password must be at least 6 characters.'
+      );
+      return;
+    }
+    if (securityForm.newPassword !== securityForm.confirmPassword) {
+      notify(
+        'error',
+        isFr ? 'Les mots de passe ne correspondent pas.' : 'Passwords do not match.'
+      );
+      return;
+    }
+
+    setBusyAction('configure-password');
+    try {
+      const res = await fetch('/api/admin/auth/configure', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
+        },
+        body: JSON.stringify({
+          currentPassword: securityForm.currentPassword,
+          newPassword: securityForm.newPassword,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        notify('error', data.error || 'Erreur configuration mot de passe.');
+        return;
+      }
+      setAdminToken(data.token || null);
+      setLockStatus({
+        locked: Boolean(data.locked),
+        hasPassword: Boolean(data.hasPassword),
+        managedByEnv: Boolean(data.managedByEnv),
+        authenticated: true,
+      });
+      setSecurityForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      notify(
+        'success',
+        isFr
+          ? 'Mot de passe Admin enregistré et verrouillage activé.'
+          : 'Admin password saved and lock enabled.'
+      );
+    } catch {
+      notify('error', isFr ? 'Erreur réseau avec le serveur.' : 'Server network error.');
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handleDisablePassword = async () => {
+    setBusyAction('disable-password');
+    try {
+      const res = await fetch('/api/admin/auth/disable', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
+        },
+        body: JSON.stringify({ currentPassword: securityForm.currentPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        notify('error', data.error || 'Erreur lors de la désactivation.');
+        return;
+      }
+      setAdminToken(null);
+      setLockStatus({
+        locked: false,
+        hasPassword: false,
+        managedByEnv: Boolean(data.managedByEnv),
+        authenticated: true,
+      });
+      setSecurityForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      notify(
+        'success',
+        isFr ? 'Verrouillage par mot de passe désactivé.' : 'Password lock disabled.'
+      );
+    } catch {
+      notify('error', isFr ? 'Erreur réseau avec le serveur.' : 'Server network error.');
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const handleLockNow = () => {
+    setAdminToken(null);
+    setLockStatus((prev) => ({ ...prev, authenticated: false }));
+    setUnlockPasswordInput('');
+    setUnlockError(null);
+  };
+
   const navItems: { id: AdminTab; label: string; icon: React.ReactNode; count?: number }[] = [
     {
       id: 'overview',
@@ -580,6 +1047,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
       label: isFr ? 'Textes du site' : 'Site Content',
       icon: <FileText className="w-4 h-4" />,
       count: contentItems.length,
+    },
+    {
+      id: 'destinations',
+      label: 'Best Destinations',
+      icon: <Globe className="w-4 h-4" />,
+      count: destinations.length,
+    },
+    {
+      id: 'reviews',
+      label: isFr ? 'Avis (Reviews)' : 'Reviews',
+      icon: <Star className="w-4 h-4" />,
+      count: reviews.length,
+    },
+    {
+      id: 'attractions',
+      label: isFr ? 'Hôtels & Attractions' : 'Attractions',
+      icon: <Compass className="w-4 h-4" />,
+      count: attractions.length,
     },
     {
       id: 'files',
@@ -594,14 +1079,120 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
       count: links.length,
     },
     {
-      id: 'attractions',
-      label: isFr ? 'Hôtels & Attractions' : 'Attractions',
-      icon: <Compass className="w-4 h-4" />,
-      count: attractions.length,
+      id: 'security',
+      label: isFr ? 'Sécurité / Mot de passe' : 'Security & Lock',
+      icon: lockStatus.locked ? (
+        <Lock className="w-4 h-4 text-emerald-400" />
+      ) : (
+        <Unlock className="w-4 h-4 text-amber-400" />
+      ),
     },
   ];
 
   const activeNavLabel = navItems.find((n) => n.id === activeTab)?.label || 'Overview';
+
+  if (lockChecking) {
+    return (
+      <div className="min-h-screen w-full bg-[#090D16] text-slate-100 flex items-center justify-center p-6">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 rounded-full border-2 border-slate-700 border-t-blue-500 animate-spin" />
+          <p className="text-xs text-slate-400">
+            {isFr ? 'Vérification de l’accès administrateur...' : 'Checking admin security...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (lockStatus.locked && !lockStatus.authenticated) {
+    return (
+      <div
+        id="admin-password-gate"
+        className="min-h-screen w-full bg-[#090D16] text-slate-100 flex items-center justify-center p-4"
+      >
+        <div className="w-full max-w-md bg-[#0F172A] border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-blue-600/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
+              <Lock className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-white">Safarihoo Admin</h1>
+              <p className="text-xs text-slate-400">
+                {isFr
+                  ? 'Espace protégé par mot de passe'
+                  : 'Password-protected management console'}
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleUnlockSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                {isFr ? 'Mot de passe administrateur' : 'Admin Password'}
+              </label>
+              <div className="relative">
+                <input
+                  type={showUnlockPassword ? 'text' : 'password'}
+                  required
+                  autoFocus
+                  value={unlockPasswordInput}
+                  onChange={(e) => setUnlockPasswordInput(e.target.value)}
+                  placeholder="••••••••••••"
+                  className="w-full pl-3.5 pr-10 py-2.5 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowUnlockPassword((s) => !s)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
+                  aria-label="Toggle password visibility"
+                >
+                  {showUnlockPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {unlockError && (
+              <div className="px-3 py-2.5 rounded-lg bg-red-950/60 border border-red-800 text-red-200 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{unlockError}</span>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={unlockBusy}
+              className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              <KeyRound className="w-4 h-4" />
+              <span>
+                {unlockBusy
+                  ? isFr
+                    ? 'Vérification...'
+                    : 'Verifying...'
+                  : isFr
+                  ? 'Déverrouiller l’Admin'
+                  : 'Unlock Admin Panel'}
+              </span>
+            </button>
+          </form>
+
+          <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
+            <button
+              type="button"
+              onClick={onExitAdmin}
+              className="text-slate-400 hover:text-white inline-flex items-center gap-1.5 cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>{isFr ? 'Retour au site' : 'Back to Public Site'}</span>
+            </button>
+            <span className="text-slate-500">
+              {lockStatus.managedByEnv ? 'ENV' : 'Server Lock'}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div id="safarihoo-admin-panel" className="min-h-screen w-full bg-[#090D16] text-slate-100 flex">
@@ -702,6 +1293,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
             </div>
           </div>
 
+          {lockStatus.locked && (
+            <button
+              type="button"
+              onClick={handleLockNow}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-amber-700/60 bg-amber-950/40 hover:bg-amber-900/50 text-xs font-semibold text-amber-200 transition-colors cursor-pointer"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>{isFr ? 'Verrouiller maintenant' : 'Lock Admin Panel'}</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={onExitAdmin}
@@ -776,6 +1378,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>{isFr ? 'Nouvelle attraction' : 'New Attraction'}</span>
+              </button>
+            )}
+            {activeTab === 'destinations' && (
+              <button
+                type="button"
+                onClick={() => openDestModal()}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold whitespace-nowrap shrink-0 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>{isFr ? 'Nouvelle destination' : 'New Destination'}</span>
+              </button>
+            )}
+            {activeTab === 'reviews' && (
+              <button
+                type="button"
+                onClick={() => openReviewModal()}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold whitespace-nowrap shrink-0 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>{isFr ? 'Nouvel avis' : 'New Review'}</span>
               </button>
             )}
             {activeTab === 'content' && (
@@ -984,10 +1606,66 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
 
                       <button
                         type="button"
+                        onClick={() => setActiveTab('destinations')}
+                        className="flex items-center gap-3 p-3.5 rounded-lg border border-slate-800 bg-slate-900/70 hover:bg-slate-800 text-left transition-colors cursor-pointer"
+                      >
+                        <Globe className="w-4 h-4 text-sky-400 shrink-0" />
+                        <div>
+                          <div className="text-xs font-semibold text-white">Best Destinations</div>
+                          <div className="text-[11px] text-slate-400">
+                            {destinations.length} {isFr ? 'destinations actives' : 'active places'}
+                          </div>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('reviews')}
+                        className="flex items-center gap-3 p-3.5 rounded-lg border border-slate-800 bg-slate-900/70 hover:bg-slate-800 text-left transition-colors cursor-pointer"
+                      >
+                        <Star className="w-4 h-4 text-amber-400 shrink-0" />
+                        <div>
+                          <div className="text-xs font-semibold text-white">
+                            {isFr ? 'Gérer les avis' : 'Manage Reviews'}
+                          </div>
+                          <div className="text-[11px] text-slate-400">
+                            {reviews.length} {isFr ? 'témoignages' : 'testimonials'}
+                          </div>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('security')}
+                        className="flex items-center gap-3 p-3.5 rounded-lg border border-slate-800 bg-slate-900/70 hover:bg-slate-800 text-left transition-colors cursor-pointer"
+                      >
+                        {lockStatus.locked ? (
+                          <Lock className="w-4 h-4 text-emerald-400 shrink-0" />
+                        ) : (
+                          <Unlock className="w-4 h-4 text-amber-400 shrink-0" />
+                        )}
+                        <div>
+                          <div className="text-xs font-semibold text-white">
+                            {isFr ? 'Mot de passe Admin' : 'Admin Lock'}
+                          </div>
+                          <div className="text-[11px] text-slate-400">
+                            {lockStatus.locked
+                              ? isFr
+                                ? 'Verrouillage actif'
+                                : 'Password active'
+                              : isFr
+                              ? 'Configurer un verrouillage'
+                              : 'Set a password'}
+                          </div>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
                         onClick={() => setActiveTab('attractions')}
                         className="flex items-center gap-3 p-3.5 rounded-lg border border-slate-800 bg-slate-900/70 hover:bg-slate-800 text-left transition-colors cursor-pointer"
                       >
-                        <Compass className="w-4 h-4 text-sky-400 shrink-0" />
+                        <Compass className="w-4 h-4 text-indigo-400 shrink-0" />
                         <div>
                           <div className="text-xs font-semibold text-white">
                             {isFr ? 'Gérer les attractions' : 'Manage Attractions'}
@@ -1711,6 +2389,480 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
                         ))}
                       </tbody>
                     </table>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB: BEST DESTINATIONS */}
+              {activeTab === 'destinations' && (
+                <div className="space-y-4">
+                  {!isUsingCustomDestinations && (
+                    <div className="bg-[#111827] border border-slate-800 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <div className="text-sm font-semibold text-white">
+                          {isFr
+                            ? 'Catalogue par défaut actif (8 destinations)'
+                            : 'Default catalog active (8 destinations)'}
+                        </div>
+                        <div className="text-xs text-slate-400 mt-0.5">
+                          {isFr
+                            ? 'Importez ces 8 destinations dans Firebase pour les modifier ou en ajouter de nouvelles.'
+                            : 'Import these 8 destinations into Firebase to customize or add your own.'}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={busyAction === 'seed-destinations'}
+                        onClick={async () => {
+                          setBusyAction('seed-destinations');
+                          try {
+                            await importDefaultDestinations();
+                            notify(
+                              'success',
+                              isFr
+                                ? 'Les 8 destinations par défaut ont été importées dans Firebase.'
+                                : 'Default 8 destinations imported into Firebase.'
+                            );
+                          } catch (err) {
+                            notify(
+                              'error',
+                              err instanceof Error ? err.message : 'Erreur import.'
+                            );
+                          } finally {
+                            setBusyAction(null);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-white whitespace-nowrap shrink-0 cursor-pointer"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+                        <span>
+                          {busyAction === 'seed-destinations'
+                            ? isFr
+                              ? 'Importation...'
+                              : 'Importing...'
+                            : isFr
+                            ? 'Importer dans Firebase'
+                            : 'Import to Firebase'}
+                        </span>
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="relative">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={destSearch}
+                      onChange={(e) => setDestSearch(e.target.value)}
+                      placeholder={
+                        isFr
+                          ? 'Rechercher une destination (ville, pays, titre)...'
+                          : 'Search destination (city, country, title)...'
+                      }
+                      className="w-full pl-10 pr-4 py-2 rounded-lg bg-[#111827] border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="bg-[#111827] border border-slate-800 rounded-lg overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-800 text-[11px] uppercase tracking-wider text-slate-400">
+                          <th className="py-3 px-4">{isFr ? 'Ordre' : 'Order'}</th>
+                          <th className="py-3 px-4">{isFr ? 'Destination' : 'Destination'}</th>
+                          <th className="py-3 px-4">{isFr ? 'Catégories' : 'Categories'}</th>
+                          <th className="py-3 px-4">{isFr ? 'Note' : 'Rating'}</th>
+                          <th className="py-3 px-4 text-right">{isFr ? 'Prix' : 'Price'}</th>
+                          <th className="py-3 px-4 text-right">{isFr ? 'Actions' : 'Actions'}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800 text-sm">
+                        {filteredDestinations.map((dest) => (
+                          <tr key={dest.id} className="hover:bg-slate-800/40">
+                            <td className="py-3 px-4 text-xs font-mono tabular-nums text-slate-400">
+                              {dest.order}
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={dest.mainImage}
+                                  alt={dest.name}
+                                  className="w-11 h-11 rounded object-cover border border-slate-700 shrink-0"
+                                />
+                                <div>
+                                  <div className="text-xs font-semibold text-white">
+                                    {dest.name}{' '}
+                                    <span className="text-slate-400 font-normal">
+                                      — {isFr ? dest.titleFr : dest.title}
+                                    </span>
+                                  </div>
+                                  <div className="text-[11px] text-slate-400">{dest.location}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-xs text-slate-300">
+                              {dest.categories.join(', ')}
+                            </td>
+                            <td className="py-3 px-4 text-xs font-mono tabular-nums text-amber-400">
+                              {dest.rating}
+                            </td>
+                            <td className="py-3 px-4 text-xs font-mono tabular-nums text-white text-right">
+                              {dest.price}
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => openDestModal(dest)}
+                                  className="p-1.5 rounded border border-slate-700 hover:bg-slate-800 text-slate-300 hover:text-white cursor-pointer"
+                                  title={isFr ? 'Modifier' : 'Edit'}
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                                {isUsingCustomDestinations && (
+                                  <button
+                                    type="button"
+                                    onClick={() => deleteDestinationItem(dest.id)}
+                                    className="p-1.5 rounded border border-red-900/60 hover:bg-red-950 text-red-400 hover:text-red-300 cursor-pointer"
+                                    title={isFr ? 'Supprimer' : 'Delete'}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB: REVIEWS */}
+              {activeTab === 'reviews' && (
+                <div className="space-y-4">
+                  {!isUsingCustomReviews && (
+                    <div className="bg-[#111827] border border-slate-800 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <div className="text-sm font-semibold text-white">
+                          {isFr
+                            ? 'Avis par défaut actifs (6 témoignages)'
+                            : 'Default reviews active (6 testimonials)'}
+                        </div>
+                        <div className="text-xs text-slate-400 mt-0.5">
+                          {isFr
+                            ? 'Importez ces avis dans Firebase pour modifier les auteurs, textes, notes et avatars.'
+                            : 'Import these reviews into Firebase to edit authors, testimonials, ratings, and avatars.'}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={busyAction === 'seed-reviews'}
+                        onClick={async () => {
+                          setBusyAction('seed-reviews');
+                          try {
+                            await importDefaultReviews();
+                            notify(
+                              'success',
+                              isFr
+                                ? 'Les 6 avis par défaut ont été importés dans Firebase.'
+                                : 'Default 6 reviews imported into Firebase.'
+                            );
+                          } catch (err) {
+                            notify(
+                              'error',
+                              err instanceof Error ? err.message : 'Erreur import.'
+                            );
+                          } finally {
+                            setBusyAction(null);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-white whitespace-nowrap shrink-0 cursor-pointer"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+                        <span>
+                          {busyAction === 'seed-reviews'
+                            ? isFr
+                              ? 'Importation...'
+                              : 'Importing...'
+                            : isFr
+                            ? 'Importer dans Firebase'
+                            : 'Import to Firebase'}
+                        </span>
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="relative">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={reviewSearch}
+                      onChange={(e) => setReviewSearch(e.target.value)}
+                      placeholder={
+                        isFr
+                          ? 'Rechercher un avis (nom, texte, catégorie)...'
+                          : 'Search reviews (name, comment, category)...'
+                      }
+                      className="w-full pl-10 pr-4 py-2 rounded-lg bg-[#111827] border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="bg-[#111827] border border-slate-800 rounded-lg overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-800 text-[11px] uppercase tracking-wider text-slate-400">
+                          <th className="py-3 px-4">{isFr ? 'Ordre' : 'Order'}</th>
+                          <th className="py-3 px-4">{isFr ? 'Auteur' : 'Author'}</th>
+                          <th className="py-3 px-4">{isFr ? 'Catégorie' : 'Category'}</th>
+                          <th className="py-3 px-4">{isFr ? 'Note' : 'Rating'}</th>
+                          <th className="py-3 px-4">{isFr ? 'Extrait' : 'Excerpt'}</th>
+                          <th className="py-3 px-4 text-right">{isFr ? 'Actions' : 'Actions'}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800 text-sm">
+                        {filteredReviews.map((rev) => (
+                          <tr key={rev.id} className="hover:bg-slate-800/40">
+                            <td className="py-3 px-4 text-xs font-mono tabular-nums text-slate-400">
+                              {rev.order}
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={rev.avatar}
+                                  alt={rev.name}
+                                  className="w-10 h-10 rounded-full object-cover border border-slate-700 shrink-0"
+                                />
+                                <div>
+                                  <div className="text-xs font-semibold text-white">{rev.name}</div>
+                                  <div className="text-[11px] text-slate-400">
+                                    {isFr ? rev.roleFr : rev.role}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-xs uppercase tracking-wider text-slate-300">
+                              {rev.category}
+                            </td>
+                            <td className="py-3 px-4 text-xs font-mono tabular-nums text-amber-400">
+                              {rev.rating}/5
+                            </td>
+                            <td className="py-3 px-4 text-xs text-slate-300 max-w-xs truncate">
+                              {isFr ? rev.textFr : rev.text}
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => openReviewModal(rev)}
+                                  className="p-1.5 rounded border border-slate-700 hover:bg-slate-800 text-slate-300 hover:text-white cursor-pointer"
+                                  title={isFr ? 'Modifier' : 'Edit'}
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                                {isUsingCustomReviews && (
+                                  <button
+                                    type="button"
+                                    onClick={() => deleteReviewItem(rev.id)}
+                                    className="p-1.5 rounded border border-red-900/60 hover:bg-red-950 text-red-400 hover:text-red-300 cursor-pointer"
+                                    title={isFr ? 'Supprimer' : 'Delete'}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB: SECURITY / PASSWORD LOCK */}
+              {activeTab === 'security' && (
+                <div className="space-y-6 max-w-2xl">
+                  <div className="bg-[#111827] border border-slate-800 rounded-xl p-6 space-y-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 ${
+                            lockStatus.locked
+                              ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                              : 'bg-amber-500/15 border-amber-500/30 text-amber-400'
+                          }`}
+                        >
+                          {lockStatus.locked ? (
+                            <ShieldCheck className="w-5 h-5" />
+                          ) : (
+                            <Unlock className="w-5 h-5" />
+                          )}
+                        </div>
+                        <div>
+                          <h2 className="text-base font-bold text-white">
+                            {isFr
+                              ? 'Verrouillage par mot de passe de l’Admin Panel'
+                              : 'Admin Panel Password Lock'}
+                          </h2>
+                          <p className="text-xs text-slate-400 mt-0.5">
+                            {lockStatus.locked
+                              ? isFr
+                                ? 'Actif : un mot de passe est exigé à l’ouverture de l’administration.'
+                                : 'Active: password required before accessing the admin console.'
+                              : isFr
+                              ? 'Désactivé : définissez un mot de passe ci-dessous pour protéger l’accès.'
+                              : 'Unlocked: set a password below to lock access to this admin console.'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {lockStatus.locked && (
+                        <button
+                          type="button"
+                          onClick={handleLockNow}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-amber-600/20 hover:bg-amber-600/30 border border-amber-600/50 text-amber-200 text-xs font-semibold shrink-0 cursor-pointer"
+                        >
+                          <Lock className="w-3.5 h-3.5" />
+                          <span>{isFr ? 'Verrouiller' : 'Lock Now'}</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {lockServerUnavailable && (
+                      <div className="p-3.5 rounded-lg bg-amber-950/50 border border-amber-800 text-amber-200 text-xs">
+                        {isFr
+                          ? 'Le serveur Express backend (/api/admin/auth/*) n’est pas actif dans cet environnement statique. Le verrouillage serveur fonctionne dès que l’application tourne via le serveur Node (npm start / dev).'
+                          : 'Backend auth endpoints (/api/admin/auth/*) are unavailable on static-only hosting. Server-side password lock requires the Node/Express server.'}
+                      </div>
+                    )}
+
+                    {lockStatus.managedByEnv ? (
+                      <div className="p-4 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-300 space-y-1">
+                        <div className="font-semibold text-white">
+                          {isFr
+                            ? 'Mot de passe géré par variable d’environnement (ADMIN_PASSCODE)'
+                            : 'Password managed via ADMIN_PASSCODE environment variable'}
+                        </div>
+                        <p className="text-slate-400">
+                          {isFr
+                            ? 'Pour modifier ou retirer ce mot de passe, mettez à jour ADMIN_PASSCODE dans la configuration serveur.'
+                            : 'Update ADMIN_PASSCODE in server environment settings to change or disable this passcode.'}
+                        </p>
+                      </div>
+                    ) : (
+                      <form onSubmit={handleConfigurePassword} className="space-y-4 pt-2 border-t border-slate-800">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-sm font-semibold text-white">
+                            {lockStatus.locked
+                              ? isFr
+                                ? 'Modifier le mot de passe'
+                                : 'Change Admin Password'
+                              : isFr
+                              ? 'Activer et définir un mot de passe'
+                              : 'Enable & Set Admin Password'}
+                          </h3>
+                          <button
+                            type="button"
+                            onClick={() => setShowSecurityPasswords((s) => !s)}
+                            className="text-xs text-slate-400 hover:text-white inline-flex items-center gap-1 cursor-pointer"
+                          >
+                            {showSecurityPasswords ? (
+                              <EyeOff className="w-3.5 h-3.5" />
+                            ) : (
+                              <Eye className="w-3.5 h-3.5" />
+                            )}
+                            <span>{showSecurityPasswords ? (isFr ? 'Masquer' : 'Hide') : isFr ? 'Afficher' : 'Show'}</span>
+                          </button>
+                        </div>
+
+                        {lockStatus.locked && (
+                          <div>
+                            <label className="block text-xs text-slate-300 mb-1">
+                              {isFr
+                                ? 'Mot de passe actuel (optionnel si session déjà ouverte)'
+                                : 'Current password (optional while unlocked)'}
+                            </label>
+                            <input
+                              type={showSecurityPasswords ? 'text' : 'password'}
+                              value={securityForm.currentPassword}
+                              onChange={(e) =>
+                                setSecurityForm({ ...securityForm, currentPassword: e.target.value })
+                              }
+                              className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                            />
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs text-slate-300 mb-1">
+                              {isFr ? 'Nouveau mot de passe (min. 6 caractères)' : 'New Password (min 6 chars)'}
+                            </label>
+                            <input
+                              type={showSecurityPasswords ? 'text' : 'password'}
+                              required
+                              minLength={6}
+                              maxLength={128}
+                              value={securityForm.newPassword}
+                              onChange={(e) =>
+                                setSecurityForm({ ...securityForm, newPassword: e.target.value })
+                              }
+                              className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-slate-300 mb-1">
+                              {isFr ? 'Confirmer le mot de passe' : 'Confirm Password'}
+                            </label>
+                            <input
+                              type={showSecurityPasswords ? 'text' : 'password'}
+                              required
+                              minLength={6}
+                              maxLength={128}
+                              value={securityForm.confirmPassword}
+                              onChange={(e) =>
+                                setSecurityForm({ ...securityForm, confirmPassword: e.target.value })
+                              }
+                              className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                          <button
+                            type="submit"
+                            disabled={busyAction === 'configure-password' || lockServerUnavailable}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white cursor-pointer disabled:opacity-50"
+                          >
+                            <Save className="w-3.5 h-3.5" />
+                            <span>
+                              {lockStatus.locked
+                                ? isFr
+                                  ? 'Mettre à jour le mot de passe'
+                                  : 'Update Password'
+                                : isFr
+                                ? 'Activer le verrouillage'
+                                : 'Enable Password Lock'}
+                            </span>
+                          </button>
+
+                          {lockStatus.locked && (
+                            <button
+                              type="button"
+                              disabled={busyAction === 'disable-password'}
+                              onClick={handleDisablePassword}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-red-900/70 bg-red-950/30 hover:bg-red-950/60 text-xs font-semibold text-red-300 cursor-pointer"
+                            >
+                              <Unlock className="w-3.5 h-3.5" />
+                              <span>
+                                {isFr ? 'Désactiver le mot de passe' : 'Disable Password Lock'}
+                              </span>
+                            </button>
+                          )}
+                        </div>
+                      </form>
+                    )}
                   </div>
                 </div>
               )}
@@ -2441,6 +3593,630 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
                     className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white cursor-pointer"
                   >
                     {isFr ? 'Enregistrer' : 'Save Attraction'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Add / Edit Best Destination */}
+      {showDestModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4"
+          onClick={() => setShowDestModal(false)}
+        >
+          <div
+            className="w-full max-w-2xl bg-[#111827] border border-slate-800 rounded-xl p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-white">
+                {editingDestId
+                  ? isFr
+                    ? 'Modifier la destination'
+                    : 'Edit Destination'
+                  : isFr
+                  ? 'Nouvelle destination'
+                  : 'New Destination'}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowDestModal(false)}
+                className="text-slate-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveDestination} className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">
+                    {isFr ? 'Nom court' : 'Short Name'}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={destForm.name}
+                    onChange={(e) => setDestForm({ ...destForm, name: e.target.value })}
+                    placeholder="Paris"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">
+                    {isFr ? 'Ville / Lieu' : 'Location'}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={destForm.location}
+                    onChange={(e) => setDestForm({ ...destForm, location: e.target.value })}
+                    placeholder="Paris, France"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">
+                    {isFr ? 'Pays' : 'Country'}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={destForm.country}
+                    onChange={(e) => setDestForm({ ...destForm, country: e.target.value })}
+                    placeholder="France"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Titre fiche (EN)</label>
+                  <input
+                    type="text"
+                    required
+                    value={destForm.title}
+                    onChange={(e) => setDestForm({ ...destForm, title: e.target.value })}
+                    placeholder="Eiffel & Seine"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Titre fiche (FR)</label>
+                  <input
+                    type="text"
+                    required
+                    value={destForm.titleFr}
+                    onChange={(e) => setDestForm({ ...destForm, titleFr: e.target.value })}
+                    placeholder="Tour Eiffel & Seine"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Prix</label>
+                  <input
+                    type="text"
+                    required
+                    value={destForm.price}
+                    onChange={(e) => setDestForm({ ...destForm, price: e.target.value })}
+                    placeholder="$1,450"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white font-mono tabular-nums"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Distance</label>
+                  <input
+                    type="text"
+                    required
+                    value={destForm.distance}
+                    onChange={(e) => setDestForm({ ...destForm, distance: e.target.value })}
+                    placeholder="3,620Km"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Temp.</label>
+                  <input
+                    type="text"
+                    required
+                    value={destForm.temp}
+                    onChange={(e) => setDestForm({ ...destForm, temp: e.target.value })}
+                    placeholder="22° C"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Note</label>
+                  <input
+                    type="text"
+                    required
+                    value={destForm.rating}
+                    onChange={(e) => setDestForm({ ...destForm, rating: e.target.value })}
+                    placeholder="4.9"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white font-mono tabular-nums"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Tag (EN)</label>
+                  <input
+                    type="text"
+                    value={destForm.tag}
+                    onChange={(e) => setDestForm({ ...destForm, tag: e.target.value })}
+                    placeholder="Popular"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Tag (FR)</label>
+                  <input
+                    type="text"
+                    value={destForm.tagFr}
+                    onChange={(e) => setDestForm({ ...destForm, tagFr: e.target.value })}
+                    placeholder="Populaire"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">
+                    {isFr ? 'Ordre' : 'Order'}
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={10000}
+                    value={destForm.order}
+                    onChange={(e) => setDestForm({ ...destForm, order: Number(e.target.value) })}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white font-mono tabular-nums"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-slate-300 mb-1.5">
+                  {isFr ? 'Catégories (sélectionner au moins 1)' : 'Categories (select at least 1)'}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {DEST_CATEGORIES.map((cat) => {
+                    const selected = destForm.categories.includes(cat);
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => {
+                          const exists = destForm.categories.includes(cat);
+                          const next = exists
+                            ? destForm.categories.filter((c) => c !== cat)
+                            : [...destForm.categories, cat];
+                          setDestForm({
+                            ...destForm,
+                            categories: next.length > 0 ? next : [cat],
+                          });
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer ${
+                          selected
+                            ? 'bg-blue-600 border-blue-500 text-white'
+                            : 'bg-slate-950 border-slate-700 text-slate-300 hover:border-slate-500'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs text-slate-300">
+                    {isFr ? 'Image principale (URL)' : 'Main Image URL'}
+                  </label>
+                  {files.some((f) => f.category === 'image') && (
+                    <select
+                      value=""
+                      onChange={(e) => {
+                        const chosen = files.find((f) => f.id === e.target.value);
+                        if (chosen) {
+                          setDestForm({
+                            ...destForm,
+                            mainImage:
+                              chosen.storageMode === 'external'
+                                ? chosen.externalUrl
+                                : chosen.dataUrl,
+                          });
+                        }
+                      }}
+                      className="text-xs bg-slate-900 border border-slate-700 rounded px-2 py-0.5 text-blue-300"
+                    >
+                      <option value="">
+                        {isFr ? 'Choisir depuis Fichiers...' : 'Pick from Files...'}
+                      </option>
+                      {files
+                        .filter((f) => f.category === 'image')
+                        .map((f) => (
+                          <option key={f.id} value={f.id}>
+                            {f.name}
+                          </option>
+                        ))}
+                    </select>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="text"
+                    required
+                    value={destForm.mainImage}
+                    onChange={(e) => setDestForm({ ...destForm, mainImage: e.target.value })}
+                    placeholder="https://images.unsplash.com/..."
+                    className="flex-1 px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                  {destForm.mainImage && (
+                    <img
+                      src={destForm.mainImage}
+                      alt="Preview"
+                      className="w-10 h-10 rounded object-cover border border-slate-700 shrink-0"
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-slate-300 mb-1">
+                  {isFr
+                    ? 'Galerie miniatures (1 URL HTTPS par ligne, max 6)'
+                    : 'Gallery Thumbnails (1 HTTPS URL per line, max 6)'}
+                </label>
+                <textarea
+                  rows={3}
+                  value={destForm.thumbnailsText}
+                  onChange={(e) => setDestForm({ ...destForm, thumbnailsText: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-slate-300 mb-1">
+                  {isFr ? 'Lien de réservation (optionnel)' : 'Booking URL (optional)'}
+                </label>
+                <input
+                  type="text"
+                  value={destForm.bookingUrl}
+                  onChange={(e) => setDestForm({ ...destForm, bookingUrl: e.target.value })}
+                  placeholder="https://... (vide = défiler vers la recherche)"
+                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Description (EN)</label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={destForm.description}
+                    onChange={(e) => setDestForm({ ...destForm, description: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Description (FR)</label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={destForm.descriptionFr}
+                    onChange={(e) => setDestForm({ ...destForm, descriptionFr: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                <label className="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={destForm.active}
+                    onChange={(e) => setDestForm({ ...destForm, active: e.target.checked })}
+                  />
+                  <span>{isFr ? 'Afficher publiquement' : 'Show publicly'}</span>
+                </label>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowDestModal(false)}
+                    className="px-4 py-2 rounded-lg border border-slate-700 text-xs text-slate-300 cursor-pointer"
+                  >
+                    {isFr ? 'Annuler' : 'Cancel'}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={busyAction === 'save-dest'}
+                    className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white cursor-pointer"
+                  >
+                    {isFr ? 'Enregistrer' : 'Save Destination'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Add / Edit Review */}
+      {showReviewModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4"
+          onClick={() => setShowReviewModal(false)}
+        >
+          <div
+            className="w-full max-w-2xl bg-[#111827] border border-slate-800 rounded-xl p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-white">
+                {editingReviewId
+                  ? isFr
+                    ? 'Modifier le témoignage'
+                    : 'Edit Review'
+                  : isFr
+                  ? 'Nouveau témoignage'
+                  : 'New Review'}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowReviewModal(false)}
+                className="text-slate-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveReview} className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">
+                    {isFr ? 'Nom auteur' : 'Author Name'}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={reviewForm.name}
+                    onChange={(e) => setReviewForm({ ...reviewForm, name: e.target.value })}
+                    placeholder="James Brown"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">
+                    {isFr ? 'Catégorie' : 'Category'}
+                  </label>
+                  <select
+                    value={reviewForm.category}
+                    onChange={(e) =>
+                      setReviewForm({ ...reviewForm, category: e.target.value as ReviewCategory })
+                    }
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  >
+                    <option value="flights">Flights</option>
+                    <option value="hotels">Hotels</option>
+                    <option value="cars">Cars</option>
+                    <option value="airhelp">AirHelp</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">
+                    {isFr ? 'Note (1-5)' : 'Rating (1-5)'}
+                  </label>
+                  <select
+                    value={reviewForm.rating}
+                    onChange={(e) =>
+                      setReviewForm({ ...reviewForm, rating: Number(e.target.value) })
+                    }
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  >
+                    {[5, 4, 3, 2, 1].map((n) => (
+                      <option key={n} value={n}>
+                        {n} / 5
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Role / Ville (EN)</label>
+                  <input
+                    type="text"
+                    value={reviewForm.role}
+                    onChange={(e) => setReviewForm({ ...reviewForm, role: e.target.value })}
+                    placeholder="Frequent Traveler"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Rôle / Ville (FR)</label>
+                  <input
+                    type="text"
+                    value={reviewForm.roleFr}
+                    onChange={(e) => setReviewForm({ ...reviewForm, roleFr: e.target.value })}
+                    placeholder="Voyageur régulier"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Titre avis (EN)</label>
+                  <input
+                    type="text"
+                    value={reviewForm.headline}
+                    onChange={(e) => setReviewForm({ ...reviewForm, headline: e.target.value })}
+                    placeholder="Good Job!"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Titre avis (FR)</label>
+                  <input
+                    type="text"
+                    value={reviewForm.headlineFr}
+                    onChange={(e) => setReviewForm({ ...reviewForm, headlineFr: e.target.value })}
+                    placeholder="Excellent travail !"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">
+                    {isFr ? 'Style visuel de carte' : 'Card Layout Style'}
+                  </label>
+                  <select
+                    value={reviewForm.cardStyle}
+                    onChange={(e) =>
+                      setReviewForm({
+                        ...reviewForm,
+                        cardStyle: e.target.value as ReviewCardStyle,
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  >
+                    {REVIEW_CARD_STYLES.map((st) => (
+                      <option key={st.value} value={st.value}>
+                        {isFr ? st.labelFr : st.labelEn}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">
+                    {isFr ? 'Ordre d’affichage' : 'Display Order'}
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={10000}
+                    value={reviewForm.order}
+                    onChange={(e) =>
+                      setReviewForm({ ...reviewForm, order: Number(e.target.value) })
+                    }
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white font-mono tabular-nums"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs text-slate-300">Avatar (URL)</label>
+                  {files.some((f) => f.category === 'image') && (
+                    <select
+                      value=""
+                      onChange={(e) => {
+                        const chosen = files.find((f) => f.id === e.target.value);
+                        if (chosen) {
+                          setReviewForm({
+                            ...reviewForm,
+                            avatar:
+                              chosen.storageMode === 'external'
+                                ? chosen.externalUrl
+                                : chosen.dataUrl,
+                          });
+                        }
+                      }}
+                      className="text-xs bg-slate-900 border border-slate-700 rounded px-2 py-0.5 text-blue-300"
+                    >
+                      <option value="">
+                        {isFr ? 'Choisir depuis Fichiers...' : 'Pick from Files...'}
+                      </option>
+                      {files
+                        .filter((f) => f.category === 'image')
+                        .map((f) => (
+                          <option key={f.id} value={f.id}>
+                            {f.name}
+                          </option>
+                        ))}
+                    </select>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="text"
+                    required
+                    value={reviewForm.avatar}
+                    onChange={(e) => setReviewForm({ ...reviewForm, avatar: e.target.value })}
+                    placeholder="https://images.unsplash.com/..."
+                    className="flex-1 px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                  {reviewForm.avatar && (
+                    <img
+                      src={reviewForm.avatar}
+                      alt="Avatar"
+                      className="w-10 h-10 rounded-full object-cover border border-slate-700 shrink-0"
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Témoignage (EN)</label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={reviewForm.text}
+                    onChange={(e) => setReviewForm({ ...reviewForm, text: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-300 mb-1">Témoignage (FR)</label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={reviewForm.textFr}
+                    onChange={(e) => setReviewForm({ ...reviewForm, textFr: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                <label className="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={reviewForm.active}
+                    onChange={(e) => setReviewForm({ ...reviewForm, active: e.target.checked })}
+                  />
+                  <span>{isFr ? 'Afficher publiquement' : 'Show publicly'}</span>
+                </label>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowReviewModal(false)}
+                    className="px-4 py-2 rounded-lg border border-slate-700 text-xs text-slate-300 cursor-pointer"
+                  >
+                    {isFr ? 'Annuler' : 'Cancel'}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={busyAction === 'save-review'}
+                    className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white cursor-pointer"
+                  >
+                    {isFr ? 'Enregistrer' : 'Save Review'}
                   </button>
                 </div>
               </div>

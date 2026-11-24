@@ -12,14 +12,23 @@ import { db, handleFirestoreError, OperationType } from '../firebase';
 import {
   AttractionCategory,
   CmsContentGroup,
+  DestinationCategory,
+  ReviewCardStyle,
+  ReviewCategory,
   SiteAttractionItem,
   SiteContentItem,
+  SiteDestinationItem,
   SiteFileCategory,
   SiteFileItem,
   SiteLinkItem,
   SiteLinkPlacement,
+  SiteReviewItem,
 } from '../types';
-import { DEFAULT_ATTRACTION_TOURS } from '../data/cmsDefaults';
+import {
+  DEFAULT_ATTRACTION_TOURS,
+  DEFAULT_DESTINATIONS,
+  DEFAULT_REVIEWS,
+} from '../data/cmsDefaults';
 
 export interface SaveContentPayload {
   key: string;
@@ -71,6 +80,44 @@ export interface SaveAttractionPayload {
   order: number;
 }
 
+export interface SaveDestinationPayload {
+  title: string;
+  titleFr: string;
+  name: string;
+  location: string;
+  country: string;
+  categories: DestinationCategory[];
+  mainImage: string;
+  thumbnails: string[];
+  distance: string;
+  temp: string;
+  rating: string;
+  price: string;
+  tag: string;
+  tagFr: string;
+  description: string;
+  descriptionFr: string;
+  bookingUrl: string;
+  active: boolean;
+  order: number;
+}
+
+export interface SaveReviewPayload {
+  name: string;
+  role: string;
+  roleFr: string;
+  headline: string;
+  headlineFr: string;
+  text: string;
+  textFr: string;
+  rating: number;
+  category: ReviewCategory;
+  cardStyle: ReviewCardStyle;
+  avatar: string;
+  active: boolean;
+  order: number;
+}
+
 interface CmsContextValue {
   contentItems: SiteContentItem[];
   contentMap: Record<string, SiteContentItem>;
@@ -79,6 +126,12 @@ interface CmsContextValue {
   storedAttractions: SiteAttractionItem[];
   attractions: SiteAttractionItem[];
   isUsingCustomAttractions: boolean;
+  storedDestinations: SiteDestinationItem[];
+  destinations: SiteDestinationItem[];
+  isUsingCustomDestinations: boolean;
+  storedReviews: SiteReviewItem[];
+  reviews: SiteReviewItem[];
+  isUsingCustomReviews: boolean;
   isLoading: boolean;
   isConnected: boolean;
   lastError: string | null;
@@ -95,6 +148,12 @@ interface CmsContextValue {
   saveAttractionItem: (id: string | null, payload: SaveAttractionPayload) => Promise<string>;
   deleteAttractionItem: (id: string) => Promise<void>;
   importDefaultAttractions: () => Promise<void>;
+  saveDestinationItem: (id: string | null, payload: SaveDestinationPayload) => Promise<string>;
+  deleteDestinationItem: (id: string) => Promise<void>;
+  importDefaultDestinations: () => Promise<void>;
+  saveReviewItem: (id: string | null, payload: SaveReviewPayload) => Promise<string>;
+  deleteReviewItem: (id: string) => Promise<void>;
+  importDefaultReviews: () => Promise<void>;
 }
 
 const CmsContext = createContext<CmsContextValue | undefined>(undefined);
@@ -133,17 +192,39 @@ function sanitizeSafeHref(raw: string): string {
   throw new Error('URL invalide : doit commencer par https://, http://, /, #, mailto: ou tel:');
 }
 
+function sanitizeImageSrc(raw: string, maxLen = 750000): string {
+  const trimmed = raw.trim().slice(0, maxLen);
+  if (
+    !trimmed ||
+    !(
+      trimmed.startsWith('https://') ||
+      trimmed.startsWith('http://') ||
+      trimmed.startsWith('/') ||
+      trimmed.startsWith('data:image/')
+    )
+  ) {
+    throw new Error("L'URL de l'image doit commencer par https://, http://, / ou data:image/.");
+  }
+  return trimmed;
+}
+
+const VALID_DEST_CATEGORIES: DestinationCategory[] = ['Cities', 'Historic', 'Beach', 'Wonders'];
+
 export const CmsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [contentItems, setContentItems] = useState<SiteContentItem[]>([]);
   const [files, setFiles] = useState<SiteFileItem[]>([]);
   const [links, setLinks] = useState<SiteLinkItem[]>([]);
   const [storedAttractions, setStoredAttractions] = useState<SiteAttractionItem[]>([]);
+  const [storedDestinations, setStoredDestinations] = useState<SiteDestinationItem[]>([]);
+  const [storedReviews, setStoredReviews] = useState<SiteReviewItem[]>([]);
 
   const [loadedFlags, setLoadedFlags] = useState({
     content: false,
     files: false,
     links: false,
     attractions: false,
+    destinations: false,
+    reviews: false,
   });
   const [isConnected, setIsConnected] = useState(true);
   const [lastError, setLastError] = useState<string | null>(null);
@@ -177,7 +258,7 @@ export const CmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         try {
           handleFirestoreError(error, OperationType.LIST, 'site_content');
         } catch {
-          // Structured error already logged cleanly
+          // Structured error logged
         }
       }
     );
@@ -299,11 +380,109 @@ export const CmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     );
 
+    const unsubDestinations = onSnapshot(
+      collection(db, 'site_destinations'),
+      (snap) => {
+        const list: SiteDestinationItem[] = snap.docs.map((d) => {
+          const data = d.data();
+          const rawCats = Array.isArray(data.categories) ? data.categories.map(String) : ['Cities'];
+          const cats = rawCats.filter((c): c is DestinationCategory =>
+            VALID_DEST_CATEGORIES.includes(c as DestinationCategory)
+          );
+          const rawThumbs = Array.isArray(data.thumbnails)
+            ? data.thumbnails.map(String).filter(Boolean)
+            : [];
+          const mainImage = String(data.mainImage || '');
+          return {
+            id: d.id,
+            title: String(data.title || ''),
+            titleFr: String(data.titleFr || ''),
+            name: String(data.name || ''),
+            location: String(data.location || ''),
+            country: String(data.country || ''),
+            categories: cats.length > 0 ? cats : ['Cities'],
+            mainImage,
+            thumbnails: rawThumbs.length > 0 ? rawThumbs : mainImage ? [mainImage] : [],
+            distance: String(data.distance || '1,000Km'),
+            temp: String(data.temp || '24° C'),
+            rating: String(data.rating || '4.9'),
+            price: String(data.price || '$990'),
+            tag: String(data.tag || ''),
+            tagFr: String(data.tagFr || ''),
+            description: String(data.description || ''),
+            descriptionFr: String(data.descriptionFr || ''),
+            bookingUrl: String(data.bookingUrl || ''),
+            active: data.active !== false,
+            order: Number.isFinite(Number(data.order)) ? Number(data.order) : 0,
+            createdAt: data.createdAt,
+            updatedAt: data.updatedAt,
+          };
+        });
+        list.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
+        setStoredDestinations(list);
+        setLoadedFlags((prev) => ({ ...prev, destinations: true }));
+        setIsConnected(true);
+      },
+      (error) => {
+        setIsConnected(false);
+        setLastError(error.message);
+        setLoadedFlags((prev) => ({ ...prev, destinations: true }));
+        try {
+          handleFirestoreError(error, OperationType.LIST, 'site_destinations');
+        } catch {
+          // Structured error logged
+        }
+      }
+    );
+
+    const unsubReviews = onSnapshot(
+      collection(db, 'site_reviews'),
+      (snap) => {
+        const list: SiteReviewItem[] = snap.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: d.id,
+            name: String(data.name || ''),
+            role: String(data.role || ''),
+            roleFr: String(data.roleFr || ''),
+            headline: String(data.headline || ''),
+            headlineFr: String(data.headlineFr || ''),
+            text: String(data.text || ''),
+            textFr: String(data.textFr || ''),
+            rating: Math.max(1, Math.min(5, Math.round(Number(data.rating) || 5))),
+            category: (data.category as ReviewCategory) || 'flights',
+            cardStyle: (data.cardStyle as ReviewCardStyle) || 'quote-top',
+            avatar: String(data.avatar || ''),
+            active: data.active !== false,
+            order: Number.isFinite(Number(data.order)) ? Number(data.order) : 0,
+            createdAt: data.createdAt,
+            updatedAt: data.updatedAt,
+          };
+        });
+        list.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
+        setStoredReviews(list);
+        setLoadedFlags((prev) => ({ ...prev, reviews: true }));
+        setIsConnected(true);
+      },
+      (error) => {
+        setIsConnected(false);
+        setLastError(error.message);
+        setLoadedFlags((prev) => ({ ...prev, reviews: true }));
+        try {
+          handleFirestoreError(error, OperationType.LIST, 'site_reviews');
+        } catch {
+          // Structured error logged
+        }
+      }
+    );
+
     return () => {
       unsubContent();
       unsubFiles();
       unsubLinks();
       unsubAttractions();
+      unsubDestinations();
+      unsubReviews();
     };
   }, []);
 
@@ -319,12 +498,32 @@ export const CmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     () => storedAttractions.filter((t) => t.active !== false),
     [storedAttractions]
   );
-
   const isUsingCustomAttractions = storedAttractions.length > 0;
   const attractions = isUsingCustomAttractions ? activeStoredAttractions : DEFAULT_ATTRACTION_TOURS;
 
+  const activeStoredDestinations = useMemo(
+    () => storedDestinations.filter((d) => d.active !== false),
+    [storedDestinations]
+  );
+  const isUsingCustomDestinations = storedDestinations.length > 0;
+  const destinations = isUsingCustomDestinations
+    ? activeStoredDestinations
+    : DEFAULT_DESTINATIONS;
+
+  const activeStoredReviews = useMemo(
+    () => storedReviews.filter((r) => r.active !== false),
+    [storedReviews]
+  );
+  const isUsingCustomReviews = storedReviews.length > 0;
+  const reviews = isUsingCustomReviews ? activeStoredReviews : DEFAULT_REVIEWS;
+
   const isLoading =
-    !loadedFlags.content || !loadedFlags.files || !loadedFlags.links || !loadedFlags.attractions;
+    !loadedFlags.content ||
+    !loadedFlags.files ||
+    !loadedFlags.links ||
+    !loadedFlags.attractions ||
+    !loadedFlags.destinations ||
+    !loadedFlags.reviews;
 
   const getContentText = (key: string, lang: 'EN' | 'FR', fallback: string): string => {
     const override = contentMap[key];
@@ -532,19 +731,7 @@ export const CmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const descriptionFr = (payload.descriptionFr.trim() || description).slice(0, 600);
     if (!description) throw new Error('La description est requise.');
 
-    const imageUrl = payload.imageUrl.trim().slice(0, 750000);
-    if (
-      !imageUrl ||
-      !(
-        imageUrl.startsWith('https://') ||
-        imageUrl.startsWith('http://') ||
-        imageUrl.startsWith('/') ||
-        imageUrl.startsWith('data:image/')
-      )
-    ) {
-      throw new Error("L'URL de l'image doit commencer par https://, http://, / ou data:image/.");
-    }
-
+    const imageUrl = sanitizeImageSrc(payload.imageUrl);
     const bookingUrl = payload.bookingUrl.trim() ? sanitizeSafeHref(payload.bookingUrl) : '';
 
     return {
@@ -637,6 +824,217 @@ export const CmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  // --- CRUD: Site Destinations ---
+  const validateDestinationPayload = (
+    payload: SaveDestinationPayload
+  ): SaveDestinationPayload => {
+    const name = payload.name.trim().slice(0, 80);
+    if (!name) throw new Error('Le nom de la destination est requis.');
+
+    const title = (payload.title.trim() || name).slice(0, 120);
+    const titleFr = (payload.titleFr.trim() || title).slice(0, 120);
+    const location = (payload.location.trim() || name).slice(0, 120);
+    const country = (payload.country.trim() || location).slice(0, 80);
+
+    const categories = payload.categories
+      .filter((c): c is DestinationCategory => VALID_DEST_CATEGORIES.includes(c))
+      .slice(0, 4);
+    if (categories.length === 0) categories.push('Cities');
+
+    const mainImage = sanitizeImageSrc(payload.mainImage);
+
+    const rawThumbs = payload.thumbnails
+      .map((t) => t.trim())
+      .filter(Boolean)
+      .slice(0, 6);
+    const thumbnails = (rawThumbs.length > 0 ? rawThumbs : [mainImage]).map((src) =>
+      sanitizeImageSrc(src, 120000)
+    );
+
+    const description = payload.description.trim().slice(0, 600);
+    if (!description) throw new Error('La description (EN) est requise.');
+    const descriptionFr = (payload.descriptionFr.trim() || description).slice(0, 600);
+
+    const bookingUrl = payload.bookingUrl.trim() ? sanitizeSafeHref(payload.bookingUrl) : '';
+
+    return {
+      title,
+      titleFr,
+      name,
+      location,
+      country,
+      categories,
+      mainImage,
+      thumbnails,
+      distance: (payload.distance.trim() || '1,200Km').slice(0, 40),
+      temp: (payload.temp.trim() || '24° C').slice(0, 30),
+      rating: (payload.rating.trim() || '4.9').slice(0, 16),
+      price: (payload.price.trim() || '$990').slice(0, 32),
+      tag: payload.tag.trim().slice(0, 40),
+      tagFr: payload.tagFr.trim().slice(0, 40),
+      description,
+      descriptionFr,
+      bookingUrl,
+      active: Boolean(payload.active),
+      order: Math.max(0, Math.min(10000, Math.round(Number(payload.order) || 0))),
+    };
+  };
+
+  const saveDestinationItem = async (
+    id: string | null,
+    payload: SaveDestinationPayload
+  ): Promise<string> => {
+    const clean = validateDestinationPayload(payload);
+    const docId = id ? slugDocId(id) : generateId('dest');
+    const exists = storedDestinations.some((d) => d.id === docId);
+    const path = `site_destinations/${docId}`;
+
+    try {
+      if (exists) {
+        await updateDoc(doc(db, 'site_destinations', docId), {
+          ...clean,
+          updatedAt: serverTimestamp(),
+        });
+      } else {
+        await setDoc(doc(db, 'site_destinations', docId), {
+          ...clean,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+      }
+      return docId;
+    } catch (error) {
+      setLastError(error instanceof Error ? error.message : String(error));
+      handleFirestoreError(error, exists ? OperationType.UPDATE : OperationType.CREATE, path);
+    }
+  };
+
+  const deleteDestinationItem = async (id: string): Promise<void> => {
+    const path = `site_destinations/${id}`;
+    try {
+      await deleteDoc(doc(db, 'site_destinations', id));
+    } catch (error) {
+      setLastError(error instanceof Error ? error.message : String(error));
+      handleFirestoreError(error, OperationType.DELETE, path);
+    }
+  };
+
+  const importDefaultDestinations = async (): Promise<void> => {
+    for (const dest of DEFAULT_DESTINATIONS) {
+      await saveDestinationItem(dest.id, {
+        title: dest.title,
+        titleFr: dest.titleFr,
+        name: dest.name,
+        location: dest.location,
+        country: dest.country,
+        categories: dest.categories,
+        mainImage: dest.mainImage,
+        thumbnails: dest.thumbnails,
+        distance: dest.distance,
+        temp: dest.temp,
+        rating: dest.rating,
+        price: dest.price,
+        tag: dest.tag,
+        tagFr: dest.tagFr,
+        description: dest.description,
+        descriptionFr: dest.descriptionFr,
+        bookingUrl: dest.bookingUrl,
+        active: dest.active,
+        order: dest.order,
+      });
+    }
+  };
+
+  // --- CRUD: Site Reviews ---
+  const validateReviewPayload = (payload: SaveReviewPayload): SaveReviewPayload => {
+    const name = payload.name.trim().slice(0, 100);
+    if (!name) throw new Error("Le nom de l'auteur est requis.");
+
+    const text = payload.text.trim().slice(0, 800);
+    if (!text) throw new Error("Le texte de l'avis (EN) est requis.");
+    const textFr = (payload.textFr.trim() || text).slice(0, 800);
+
+    const avatar = sanitizeImageSrc(
+      payload.avatar.trim() ||
+        'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80'
+    );
+
+    return {
+      name,
+      role: payload.role.trim().slice(0, 120),
+      roleFr: (payload.roleFr.trim() || payload.role.trim()).slice(0, 120),
+      headline: payload.headline.trim().slice(0, 120),
+      headlineFr: (payload.headlineFr.trim() || payload.headline.trim()).slice(0, 120),
+      text,
+      textFr,
+      rating: Math.max(1, Math.min(5, Math.round(Number(payload.rating) || 5))),
+      category: payload.category,
+      cardStyle: payload.cardStyle,
+      avatar,
+      active: Boolean(payload.active),
+      order: Math.max(0, Math.min(10000, Math.round(Number(payload.order) || 0))),
+    };
+  };
+
+  const saveReviewItem = async (
+    id: string | null,
+    payload: SaveReviewPayload
+  ): Promise<string> => {
+    const clean = validateReviewPayload(payload);
+    const docId = id ? slugDocId(id) : generateId('review');
+    const exists = storedReviews.some((r) => r.id === docId);
+    const path = `site_reviews/${docId}`;
+
+    try {
+      if (exists) {
+        await updateDoc(doc(db, 'site_reviews', docId), {
+          ...clean,
+          updatedAt: serverTimestamp(),
+        });
+      } else {
+        await setDoc(doc(db, 'site_reviews', docId), {
+          ...clean,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+      }
+      return docId;
+    } catch (error) {
+      setLastError(error instanceof Error ? error.message : String(error));
+      handleFirestoreError(error, exists ? OperationType.UPDATE : OperationType.CREATE, path);
+    }
+  };
+
+  const deleteReviewItem = async (id: string): Promise<void> => {
+    const path = `site_reviews/${id}`;
+    try {
+      await deleteDoc(doc(db, 'site_reviews', id));
+    } catch (error) {
+      setLastError(error instanceof Error ? error.message : String(error));
+      handleFirestoreError(error, OperationType.DELETE, path);
+    }
+  };
+
+  const importDefaultReviews = async (): Promise<void> => {
+    for (const review of DEFAULT_REVIEWS) {
+      await saveReviewItem(review.id, {
+        name: review.name,
+        role: review.role,
+        roleFr: review.roleFr,
+        headline: review.headline,
+        headlineFr: review.headlineFr,
+        text: review.text,
+        textFr: review.textFr,
+        rating: review.rating,
+        category: review.category,
+        cardStyle: review.cardStyle,
+        avatar: review.avatar,
+        active: review.active,
+        order: review.order,
+      });
+    }
+  };
+
   return (
     <CmsContext.Provider
       value={{
@@ -647,6 +1045,12 @@ export const CmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         storedAttractions,
         attractions,
         isUsingCustomAttractions,
+        storedDestinations,
+        destinations,
+        isUsingCustomDestinations,
+        storedReviews,
+        reviews,
+        isUsingCustomReviews,
         isLoading,
         isConnected,
         lastError,
@@ -663,6 +1067,12 @@ export const CmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         saveAttractionItem,
         deleteAttractionItem,
         importDefaultAttractions,
+        saveDestinationItem,
+        deleteDestinationItem,
+        importDefaultDestinations,
+        saveReviewItem,
+        deleteReviewItem,
+        importDefaultReviews,
       }}
     >
       {children}

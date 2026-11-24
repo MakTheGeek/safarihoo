@@ -71,7 +71,11 @@ service cloud.firestore {
         data.en is string && data.en.size() <= 2000 &&
         data.fr is string && data.fr.size() <= 2000 &&
         data.group is string && data.group.size() <= 32 &&
-        data.group in ['hero', 'hotels', 'cars', 'airhelp', 'trust', 'footer', 'attractions', 'contact', 'custom'] &&
+        data.group in [
+          'hero', 'hotels', 'cars', 'airhelp', 'trust',
+          'destinations', 'reviews', 'about', 'faq',
+          'footer', 'attractions', 'contact', 'custom'
+        ] &&
         data.label is string && data.label.size() >= 1 && data.label.size() <= 120 &&
         data.createdAt is timestamp &&
         data.updatedAt is timestamp;
@@ -167,6 +171,109 @@ service cloud.firestore {
         data.updatedAt is timestamp;
     }
 
+    function isSafeThumbnailSrc(src) {
+      return src is string &&
+        src.size() >= 1 &&
+        src.size() <= 120000 &&
+        (
+          src.matches('^https://.*') ||
+          src.matches('^http://.*') ||
+          src.matches('^/.*') ||
+          src.matches('^data:image/[a-zA-Z0-9.+-]+;base64,.*')
+        );
+    }
+
+    function isValidDestinationCategories(arr) {
+      return arr is list &&
+        arr.size() >= 1 &&
+        arr.size() <= 4 &&
+        arr[0] is string && arr[0] in ['Cities', 'Historic', 'Beach', 'Wonders'] &&
+        (arr.size() < 2 || (arr[1] is string && arr[1] in ['Cities', 'Historic', 'Beach', 'Wonders'])) &&
+        (arr.size() < 3 || (arr[2] is string && arr[2] in ['Cities', 'Historic', 'Beach', 'Wonders'])) &&
+        (arr.size() < 4 || (arr[3] is string && arr[3] in ['Cities', 'Historic', 'Beach', 'Wonders']));
+    }
+
+    function isValidThumbnailsArray(arr) {
+      return arr is list &&
+        arr.size() >= 1 &&
+        arr.size() <= 6 &&
+        isSafeThumbnailSrc(arr[0]) &&
+        (arr.size() < 2 || isSafeThumbnailSrc(arr[1])) &&
+        (arr.size() < 3 || isSafeThumbnailSrc(arr[2])) &&
+        (arr.size() < 4 || isSafeThumbnailSrc(arr[3])) &&
+        (arr.size() < 5 || isSafeThumbnailSrc(arr[4])) &&
+        (arr.size() < 6 || isSafeThumbnailSrc(arr[5]));
+    }
+
+    function isValidSiteDestination(data) {
+      return data.keys().hasAll([
+          'title', 'titleFr', 'name', 'location', 'country',
+          'categories', 'mainImage', 'thumbnails', 'distance', 'temp',
+          'rating', 'price', 'tag', 'tagFr', 'description',
+          'descriptionFr', 'bookingUrl', 'active', 'order', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'title', 'titleFr', 'name', 'location', 'country',
+          'categories', 'mainImage', 'thumbnails', 'distance', 'temp',
+          'rating', 'price', 'tag', 'tagFr', 'description',
+          'descriptionFr', 'bookingUrl', 'active', 'order', 'createdAt', 'updatedAt'
+        ]) &&
+        data.title is string && data.title.size() >= 1 && data.title.size() <= 120 &&
+        data.titleFr is string && data.titleFr.size() >= 1 && data.titleFr.size() <= 120 &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 80 &&
+        data.location is string && data.location.size() >= 1 && data.location.size() <= 120 &&
+        data.country is string && data.country.size() >= 1 && data.country.size() <= 80 &&
+        isValidDestinationCategories(data.categories) &&
+        isSafeImageSrc(data.mainImage) &&
+        isValidThumbnailsArray(data.thumbnails) &&
+        data.distance is string && data.distance.size() >= 1 && data.distance.size() <= 40 &&
+        data.temp is string && data.temp.size() >= 1 && data.temp.size() <= 30 &&
+        data.rating is string && data.rating.size() >= 1 && data.rating.size() <= 16 &&
+        data.price is string && data.price.size() >= 1 && data.price.size() <= 32 &&
+        data.tag is string && data.tag.size() <= 40 &&
+        data.tagFr is string && data.tagFr.size() <= 40 &&
+        data.description is string && data.description.size() >= 1 && data.description.size() <= 600 &&
+        data.descriptionFr is string && data.descriptionFr.size() >= 1 && data.descriptionFr.size() <= 600 &&
+        isSafeOptionalUrl(data.bookingUrl) &&
+        data.active is bool &&
+        data.order is int && data.order >= 0 && data.order <= 10000 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidSiteReview(data) {
+      return data.keys().hasAll([
+          'name', 'role', 'roleFr', 'headline', 'headlineFr',
+          'text', 'textFr', 'rating', 'category', 'cardStyle',
+          'avatar', 'active', 'order', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'name', 'role', 'roleFr', 'headline', 'headlineFr',
+          'text', 'textFr', 'rating', 'category', 'cardStyle',
+          'avatar', 'active', 'order', 'createdAt', 'updatedAt'
+        ]) &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+        data.role is string && data.role.size() <= 120 &&
+        data.roleFr is string && data.roleFr.size() <= 120 &&
+        data.headline is string && data.headline.size() <= 120 &&
+        data.headlineFr is string && data.headlineFr.size() <= 120 &&
+        data.text is string && data.text.size() >= 1 && data.text.size() <= 800 &&
+        data.textFr is string && data.textFr.size() >= 1 && data.textFr.size() <= 800 &&
+        data.rating is int && data.rating >= 1 && data.rating <= 5 &&
+        data.category is string && data.category.size() <= 24 &&
+        data.category in ['flights', 'hotels', 'cars', 'airhelp'] &&
+        data.cardStyle is string && data.cardStyle.size() <= 32 &&
+        data.cardStyle in [
+          'quote-top', 'avatar-top-stars', 'headline-stars',
+          'quote-bottom-avatar', 'cursive-signature', 'headline-avatars'
+        ] &&
+        isSafeImageSrc(data.avatar) &&
+        data.active is bool &&
+        data.order is int && data.order >= 0 && data.order <= 10000 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
     // -------------------------------------------------------------------------
     // Collection Match Blocks (No-Auth CMS Mode with Strict Schema Validation)
     // -------------------------------------------------------------------------
@@ -244,6 +351,45 @@ service cloud.firestore {
           'active', 'order', 'updatedAt'
         ]);
       allow delete: if isValidId(tourId);
+    }
+
+    match /site_destinations/{destId} {
+      allow get: if isValidId(destId);
+      allow list: if true;
+      allow create: if isValidId(destId) &&
+        isValidSiteDestination(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(destId) &&
+        isValidSiteDestination(incoming()) &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'titleFr', 'name', 'location', 'country',
+          'categories', 'mainImage', 'thumbnails', 'distance', 'temp',
+          'rating', 'price', 'tag', 'tagFr', 'description',
+          'descriptionFr', 'bookingUrl', 'active', 'order', 'updatedAt'
+        ]);
+      allow delete: if isValidId(destId);
+    }
+
+    match /site_reviews/{reviewId} {
+      allow get: if isValidId(reviewId);
+      allow list: if true;
+      allow create: if isValidId(reviewId) &&
+        isValidSiteReview(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(reviewId) &&
+        isValidSiteReview(incoming()) &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'name', 'role', 'roleFr', 'headline', 'headlineFr',
+          'text', 'textFr', 'rating', 'category', 'cardStyle',
+          'avatar', 'active', 'order', 'updatedAt'
+        ]);
+      allow delete: if isValidId(reviewId);
     }
   }
 }
