@@ -55,7 +55,19 @@ export const ReviewsSection: React.FC = () => {
   } | null>(() => {
     try {
       const saved = localStorage.getItem('safarihoo_custom_review');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object' && typeof parsed.name === 'string' && typeof parsed.text === 'string') {
+          return {
+            name: parsed.name,
+            role: typeof parsed.role === 'string' ? parsed.role : '',
+            headline: typeof parsed.headline === 'string' ? parsed.headline : '',
+            text: parsed.text,
+            rating: Math.max(1, Math.min(5, Math.round(Number(parsed.rating) || 5))),
+            avatar: typeof parsed.avatar === 'string' && parsed.avatar ? parsed.avatar : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+          };
+        }
+      }
     } catch {
       // ignore
     }
@@ -243,7 +255,8 @@ export const ReviewsSection: React.FC = () => {
       : isFr
       ? review.textFr || review.text
       : review.text;
-    const starCount = isFirstWithVisitorOverride ? customReview.rating : review.rating;
+    const rawStars = isFirstWithVisitorOverride ? customReview.rating : review.rating;
+    const starCount = Math.max(1, Math.min(5, Math.round(Number(rawStars) || 5)));
     const avatar = isFirstWithVisitorOverride ? customReview.avatar : review.avatar;
 
     switch (review.cardStyle) {
