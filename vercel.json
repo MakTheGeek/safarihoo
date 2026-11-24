@@ -1,6 +1,20 @@
 {
   "framework": "vite",
+  "functions": {
+    "api/**/*.ts": {
+      "includeFiles": "firebase-applet-config.json"
+    }
+  },
   "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate"
+        }
+      ]
+    },
     {
       "source": "/assets/(.*)",
       "headers": [
@@ -89,7 +103,7 @@
       "destination": "/ads.txt"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]

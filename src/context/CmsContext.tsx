@@ -476,7 +476,19 @@ export const CmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     );
 
+    const loadingSafetyTimer = setTimeout(() => {
+      setLoadedFlags({
+        content: true,
+        files: true,
+        links: true,
+        attractions: true,
+        destinations: true,
+        reviews: true,
+      });
+    }, 8000);
+
     return () => {
+      clearTimeout(loadingSafetyTimer);
       unsubContent();
       unsubFiles();
       unsubLinks();

@@ -252,4 +252,24 @@ export const DIRTY_DOZEN_CASES = [
       order: 0,
     },
   },
+  {
+    name: '15. Arbitrary document ID on site_settings (only admin_lock allowed)',
+    collection: 'site_settings',
+    docId: 'arbitrary_doc',
+    expected: 'PERMISSION_DENIED',
+    payload: {
+      enabled: false,
+      passwordHash: '',
+    },
+  },
+  {
+    name: '16. Enabled admin_lock without valid salted scrypt passwordHash',
+    collection: 'site_settings',
+    docId: 'admin_lock',
+    expected: 'PERMISSION_DENIED',
+    payload: {
+      enabled: true,
+      passwordHash: 'plaintext_not_allowed',
+    },
+  },
 ];

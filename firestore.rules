@@ -274,6 +274,20 @@ service cloud.firestore {
         data.updatedAt is timestamp;
     }
 
+    function isValidSiteAdminLock(data) {
+      return data.keys().hasAll(['enabled', 'passwordHash', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['enabled', 'passwordHash', 'createdAt', 'updatedAt']) &&
+        data.enabled is bool &&
+        data.passwordHash is string &&
+        data.passwordHash.size() <= 170 &&
+        (
+          (data.enabled == false && data.passwordHash == '') ||
+          (data.enabled == true && data.passwordHash.matches('^[0-9a-f]{32}:[0-9a-f]{128}$'))
+        ) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
     // -------------------------------------------------------------------------
     // Collection Match Blocks (No-Auth CMS Mode with Strict Schema Validation)
     // -------------------------------------------------------------------------
@@ -390,6 +404,21 @@ service cloud.firestore {
           'avatar', 'active', 'order', 'updatedAt'
         ]);
       allow delete: if isValidId(reviewId);
+    }
+
+    match /site_settings/{settingId} {
+      allow get: if settingId == 'admin_lock';
+      allow list: if false;
+      allow create: if settingId == 'admin_lock' &&
+        isValidSiteAdminLock(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if settingId == 'admin_lock' &&
+        isValidSiteAdminLock(incoming()) &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['enabled', 'passwordHash', 'updatedAt']);
+      allow delete: if false;
     }
   }
 }

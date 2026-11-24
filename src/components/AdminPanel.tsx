@@ -333,21 +333,31 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
   });
   const [showSecurityPasswords, setShowSecurityPasswords] = useState(false);
 
+  const [lockServerError, setLockServerError] = useState<string | null>(null);
+
   React.useEffect(() => {
     let active = true;
     const checkStatus = async () => {
       try {
         const res = await fetch('/api/admin/auth/status', {
-          headers: adminToken ? { Authorization: `Bearer ${adminToken}` } : undefined,
+          cache: 'no-store',
         });
         const contentType = res.headers.get('content-type') || '';
-        if (!res.ok || !contentType.includes('application/json')) {
+        if (!contentType.includes('application/json') || res.status === 404) {
           if (active) setLockServerUnavailable(true);
           return;
         }
-        const data = (await res.json()) as typeof lockStatus;
+        const data = (await res.json()) as Partial<typeof lockStatus> & { error?: string };
+        if (!res.ok) {
+          if (active) {
+            setLockServerUnavailable(false);
+            setLockServerError(data.error || 'Auth server error');
+          }
+          return;
+        }
         if (active) {
           setLockServerUnavailable(false);
+          setLockServerError(null);
           setLockStatus({
             locked: Boolean(data.locked),
             hasPassword: Boolean(data.hasPassword),
@@ -365,7 +375,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
     return () => {
       active = false;
     };
-  }, [adminToken]);
+  }, []);
 
   const notify = (type: 'success' | 'error', text: string) => {
     setStatusMessage({ type, text });
@@ -916,9 +926,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
     try {
       const res = await fetch('/api/admin/auth/unlock', {
         method: 'POST',
+        cache: 'no-store',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: unlockPasswordInput }),
       });
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        setUnlockError(
+          isFr
+            ? 'Le serveur d’authentification (/api/admin/auth/unlock) n’a pas renvoyé de JSON.'
+            : 'Auth endpoint (/api/admin/auth/unlock) returned a non-JSON response.'
+        );
+        return;
+      }
       const data = await res.json();
       if (!res.ok) {
         setUnlockError(data.error || (isFr ? 'Mot de passe incorrect.' : 'Incorrect password.'));
@@ -959,6 +979,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
     try {
       const res = await fetch('/api/admin/auth/configure', {
         method: 'POST',
+        cache: 'no-store',
         headers: {
           'Content-Type': 'application/json',
           ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
@@ -968,6 +989,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
           newPassword: securityForm.newPassword,
         }),
       });
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        notify(
+          'error',
+          isFr
+            ? 'Endpoint /api/admin/auth/configure indisponible (réponse non-JSON).'
+            : 'Endpoint /api/admin/auth/configure returned a non-JSON response.'
+        );
+        return;
+      }
       const data = await res.json();
       if (!res.ok) {
         notify('error', data.error || 'Erreur configuration mot de passe.');
@@ -999,12 +1030,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
     try {
       const res = await fetch('/api/admin/auth/disable', {
         method: 'POST',
+        cache: 'no-store',
         headers: {
           'Content-Type': 'application/json',
           ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
         },
         body: JSON.stringify({ currentPassword: securityForm.currentPassword }),
       });
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        notify(
+          'error',
+          isFr
+            ? 'Endpoint /api/admin/auth/disable indisponible (réponse non-JSON).'
+            : 'Endpoint /api/admin/auth/disable returned a non-JSON response.'
+        );
+        return;
+      }
       const data = await res.json();
       if (!res.ok) {
         notify('error', data.error || 'Erreur lors de la désactivation.');
@@ -2732,8 +2774,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
                     {lockServerUnavailable && (
                       <div className="p-3.5 rounded-lg bg-amber-950/50 border border-amber-800 text-amber-200 text-xs">
                         {isFr
-                          ? 'Le serveur Express backend (/api/admin/auth/*) n’est pas actif dans cet environnement statique. Le verrouillage serveur fonctionne dès que l’application tourne via le serveur Node (npm start / dev).'
-                          : 'Backend auth endpoints (/api/admin/auth/*) are unavailable on static-only hosting. Server-side password lock requires the Node/Express server.'}
+                          ? 'Les endpoints d’authentification (/api/admin/auth/*) ne répondent pas encore sur cet hébergement. Déployez la mise à jour (/api/admin/auth/* et vercel.json) ou lancez le serveur Node (npm start / dev).'
+                          : 'Backend auth endpoints (/api/admin/auth/*) are not responding on this host yet. Redeploy with /api/admin/auth/* & vercel.json or run the Node server.'}
+                      </div>
+                    )}
+
+                    {lockServerError && !lockServerUnavailable && (
+                      <div className="p-3.5 rounded-lg bg-red-950/50 border border-red-800 text-red-200 text-xs">
+                        {lockServerError}
                       </div>
                     )}
 

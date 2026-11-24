@@ -604,6 +604,35 @@
         "createdAt",
         "updatedAt"
       ]
+    },
+    "SiteAdminLock": {
+      "title": "SiteAdminLock",
+      "description": "Server-managed salted scrypt password lock state for the Safarihoo Admin Panel.",
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether password protection is currently active."
+        },
+        "passwordHash": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 170,
+          "pattern": "^(|[0-9a-f]{32}:[0-9a-f]{128})$",
+          "description": "Salted scrypt hash (saltHex:derivedKeyHex) or empty string when disabled."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update."
+        }
+      },
+      "required": ["enabled", "passwordHash", "createdAt", "updatedAt"]
     }
   },
   "firestore": {
@@ -630,6 +659,10 @@
     "/site_reviews/{reviewId}": {
       "schema": { "$ref": "#/entities/SiteReview" },
       "description": "Traveler reviews displayed in the Reviews section."
+    },
+    "/site_settings/{settingId}": {
+      "schema": { "$ref": "#/entities/SiteAdminLock" },
+      "description": "Persistent server-side Admin Panel password lock configuration (doc ID: admin_lock)."
     }
   }
 }

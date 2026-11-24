@@ -1,10 +1,38 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import {
+  getFirestore,
+  initializeFirestore,
+  doc,
+  getDocFromServer,
+  type Firestore,
+} from 'firebase/firestore';
+import {
+  getFirestore as getLiteFirestore,
+  doc as liteDoc,
+  getDoc as liteGetDoc,
+} from 'firebase/firestore/lite';
 import firebaseConfig from '../firebase-applet-config.json';
 
-const app = initializeApp(firebaseConfig);
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+function createFirestoreInstance(): Firestore {
+  if (typeof window === 'undefined') {
+    return getFirestore(app, firebaseConfig.firestoreDatabaseId);
+  }
+  try {
+    return initializeFirestore(
+      app,
+      {
+        experimentalForceLongPolling: true,
+      },
+      firebaseConfig.firestoreDatabaseId
+    );
+  } catch {
+    return getFirestore(app, firebaseConfig.firestoreDatabaseId);
+  }
+}
+
+export const db = createFirestoreInstance();
 export { app, firebaseConfig };
 
 export enum OperationType {
@@ -61,7 +89,13 @@ export async function testConnection(): Promise<boolean> {
     return true;
   } catch (error) {
     if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.error('Please check your Firebase configuration.');
+      try {
+        const liteDb = getLiteFirestore(app, firebaseConfig.firestoreDatabaseId);
+        await liteGetDoc(liteDoc(liteDb, 'test', 'connection'));
+        return true;
+      } catch {
+        console.error('Please check your Firebase configuration.');
+      }
     }
     return false;
   }

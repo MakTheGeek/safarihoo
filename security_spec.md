@@ -14,6 +14,7 @@
 6. `site_links.url` must start with `https://`, `http://`, `/`, or `#` (blocks `javascript:` XSS URI injection).
 7. `site_attractions.highlights` and `highlightsFr` arrays are strictly capped at `<= 8` entries; `site_destinations.categories` is capped at 1..4 valid categories and `thumbnails` at 1..6 validated URLs/thumbnails; `site_reviews.rating` is integer 1..5.
 8. `createdAt == request.time` on create; `createdAt` is immutable on update; `updatedAt == request.time` on create and update.
+9. `site_settings` only permits single document ID `admin_lock` (`allow list: if false`, `allow delete: if false`), requiring `passwordHash` to be empty when `enabled == false` or a valid `saltHex(32):scryptHex(128)` hash when `enabled == true`.
 
 ## 3. The "Dirty Dozen" Payloads (Expected `PERMISSION_DENIED`)
 1. Ghost field injection on `site_content` (`{ ..., isAdmin: true }`).
@@ -28,3 +29,4 @@
 10. Non-string element `[123]` inside `highlights` on `site_attractions`.
 11. Poisoned document ID (`"../../etc/passwd"` or 200-char ID) on `setDoc`.
 12. Negative `price` (`-50`) on `site_attractions`.
+13. Arbitrary docId (`other_setting`), invalid `passwordHash` format, `list`, or `delete` on `site_settings`.
